@@ -62,6 +62,14 @@ export function Navigation() {
           
           {/* Navigation Items */}
           <div className="flex items-center gap-1">
+            {!isAdminAuthenticated && (
+              <Button asChild variant={location.pathname === '/admin-login' ? 'default' : 'outline'} className="gap-2">
+                <Link to="/admin-login">
+                  <UserCog className="h-4 w-4" />
+                  <span className="hidden sm:inline text-sm">Admin Login</span>
+                </Link>
+              </Button>
+            )}
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to;
