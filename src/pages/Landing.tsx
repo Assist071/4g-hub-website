@@ -16,11 +16,70 @@ import {
   Gamepad2,
   Zap,
   Bell,
+  MapPin,
+  Phone,
+  Mail,
+  Star,
+  Headphones,
+  MessageCircle,
+  Home,
 } from 'lucide-react';
 
 const Landing = () => {
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground grid-pattern">
+      {/* Quick Navigation Buttons */}
+      <div className="fixed top-0 left-1/2 -translate-x-[-52%] z-50 h-16 flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="text-xs font-ethnocentric"
+        >
+       
+          Home
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => scrollToSection('food-showcase')}
+          className="text-xs font-ethnocentric"
+        >
+          Foods
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => scrollToSection('why-choose')}
+          className="text-xs font-ethnocentric"
+        >
+          Why Us
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => scrollToSection('visit-us')}
+          className="text-xs font-ethnocentric"
+        >
+          Visit
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => scrollToSection('get-touch')}
+          className="text-xs font-ethnocentric"
+        >
+          Contact
+        </Button>
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
@@ -89,8 +148,273 @@ const Landing = () => {
       </section>
 
       {/* Food Showcase Section */}
-      <FoodShowcase />
+      <div id="food-showcase">
+        <FoodShowcase />
+      </div>
 
+      {/* Why Choose Section */}
+      <section id="why-choose" className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 cyber-text neon-glow">
+              Why Choose 4G HUB Cafe?
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Experience the perfect blend of gaming, dining, and convenience in one vibrant space
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="tech-card corner-bracket border-primary/20 hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-primary text-primary-foreground w-fit mb-3">
+                  <Monitor className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">Digital Ordering</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Fast, efficient ordering system with real-time updates and order tracking
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-secondary/20 hover:border-secondary/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-secondary text-secondary-foreground w-fit mb-3">
+                  <Gamepad2 className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">Gaming Haven</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Enjoy premium gaming setup while waiting for your delicious meals
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-accent/20 hover:border-accent/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-accent text-accent-foreground w-fit mb-3">
+                  <Wifi className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">High-Speed 4G</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Lightning-fast connectivity for seamless gaming and browsing
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-emerald-500/20 hover:border-emerald-500/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-emerald-600 text-white w-fit mb-3">
+                  <ChefHat className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">Quality Food</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Fresh, delicious menu items prepared by expert chefs
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-violet-500/20 hover:border-violet-500/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-violet-600 text-white w-fit mb-3">
+                  <Star className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">Premium Experience</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Comfortable seating, clean ambiance, and outstanding service
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-orange-500/20 hover:border-orange-500/50 transition-colors">
+              <CardHeader>
+                <div className="p-3 rounded-lg bg-orange-600 text-white w-fit mb-3">
+                  <Headphones className="h-6 w-6" />
+                </div>
+                <CardTitle className="font-ethnocentric">24/7 Support</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Dedicated customer support ready to assist you anytime
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Visit Us Section */}
+      <section id="visit-us" className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-8 cyber-text neon-glow">
+                Visit Us
+              </h2>
+              <div className="space-y-8">
+                <div className="flex gap-4">
+                  <div className="p-3 rounded-lg bg-primary text-primary-foreground w-fit h-fit">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">Location</h3>
+                    <p className="text-muted-foreground">
+                      4G HUB Cafe<br />
+                      123 Gaming Street<br />
+                      Tech City, TC 12345
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="p-3 rounded-lg bg-secondary text-secondary-foreground w-fit h-fit">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">Hours</h3>
+                    <p className="text-muted-foreground">
+                      Monday - Friday: 10:00 AM - 11:00 PM<br />
+                      Saturday - Sunday: 9:00 AM - 12:00 AM<br />
+                      Holidays: 12:00 PM - 10:00 PM
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="p-3 rounded-lg bg-accent text-accent-foreground w-fit h-fit">
+                    <Wifi className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">Connectivity</h3>
+                    <p className="text-muted-foreground">
+                      High-speed 5G Network<br />
+                      Free WiFi throughout<br />
+                      Backup Power Systems
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="tech-card corner-bracket p-8 bg-muted/50">
+                <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
+                  <MapPin className="h-16 w-16 text-primary/50" />
+                </div>
+                <h3 className="font-bold text-xl mb-4 font-ethnocentric">Easy to Find</h3>
+                <p className="text-muted-foreground mb-6">
+                  Located in the heart of the city with easy access and ample parking. Perfect spot for gamers and food lovers!
+                </p>
+                <Button className="w-full gap-2 neon-glow-primary">
+                  Get Directions <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Get in Touch Section */}
+      <section id="get-touch" className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 cyber-text neon-glow">
+              Get in Touch
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Have questions or feedback? We'd love to hear from you. Reach out today!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <Card className="tech-card corner-bracket border-primary/20 text-center">
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-lg bg-primary text-primary-foreground">
+                    <Phone className="h-8 w-8" />
+                  </div>
+                </div>
+                <CardTitle className="font-ethnocentric">Call Us</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Speak with our team directly
+                </p>
+                <a href="tel:+1234567890" className="font-bold text-primary hover:underline">
+                  +1 (234) 567-8900
+                </a>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-secondary/20 text-center">
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-lg bg-secondary text-secondary-foreground">
+                    <Mail className="h-8 w-8" />
+                  </div>
+                </div>
+                <CardTitle className="font-ethnocentric">Email Us</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Send us your inquiries
+                </p>
+                <a href="mailto:hello@4ghubcafe.com" className="font-bold text-primary hover:underline">
+                  hello@4ghubcafe.com
+                </a>
+              </CardContent>
+            </Card>
+
+            <Card className="tech-card corner-bracket border-accent/20 text-center">
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-lg bg-accent text-accent-foreground">
+                    <MessageCircle className="h-8 w-8" />
+                  </div>
+                </div>
+                <CardTitle className="font-ethnocentric">Live Chat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Chat with us in real-time
+                </p>
+                <Button variant="outline" className="gap-2">
+                  Start Chat <ArrowRight className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="tech-card corner-bracket bg-primary/5 border-primary/20 p-8 md:p-12 text-center rounded-lg">
+            <h3 className="text-2xl font-bold mb-4 font-ethnocentric">Join Our Community</h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Follow us on social media for exclusive updates, special offers, and gaming tournaments
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button variant="outline" className="gap-2">
+                Facebook <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" className="gap-2">
+                Instagram <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" className="gap-2">
+                Twitter <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" className="gap-2">
+                Discord <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </div>
   );

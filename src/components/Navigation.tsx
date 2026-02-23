@@ -57,11 +57,11 @@ export function Navigation() {
           {/* Logo/Brand */}
           <Link to="/" className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-opacity">
             <img src={logo} alt="4G Hub Logo" className="object-contain" style={{ width: '200px', height: '200px' }} />
-
           </Link>
           
           {/* Navigation Items */}
           <div className="flex items-center gap-1">
+            {/*
             {!isAdminAuthenticated && (
               <Button asChild variant={location.pathname === '/admin-login' ? 'default' : 'outline'} className="gap-2">
                 <Link to="/admin-login">
@@ -70,6 +70,7 @@ export function Navigation() {
                 </Link>
               </Button>
             )}
+            */}
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to;
