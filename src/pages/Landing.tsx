@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import FoodShowcase from '@/components/FoodShowcase';
+import { CustomerFeedback } from '@/components/CustomerFeedback';
 import {
   Utensils,
   Monitor,
@@ -26,6 +28,7 @@ import {
 } from 'lucide-react';
 
 const Landing = () => {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -380,13 +383,13 @@ const Landing = () => {
                     <MessageCircle className="h-8 w-8" />
                   </div>
                 </div>
-                <CardTitle className="font-ethnocentric">Live Chat</CardTitle>
+                <CardTitle className="font-ethnocentric">Live Chat & Feedback</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Chat with us in real-time
+                  Chat with us and share your feedback
                 </p>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" onClick={() => setIsFeedbackOpen(true)}>
                   Start Chat <ArrowRight className="h-4 w-4" />
                 </Button>
               </CardContent>
@@ -416,6 +419,7 @@ const Landing = () => {
         </div>
       </section>
 
+      <CustomerFeedback isOpen={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
     </div>
   );
 };

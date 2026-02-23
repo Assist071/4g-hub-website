@@ -38,4 +38,14 @@ export interface MenuCategory {
   icon?: string;
 }
 
+export interface Feedback {
+  id: string;
+  customerName: string;
+  email?: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: Date;
+  status: 'new' | 'reviewed' | 'archived';
+}
+
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';

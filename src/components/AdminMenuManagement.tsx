@@ -10,9 +10,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trash2, Edit2, Plus, Upload, X, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { compressImage, createPreviewUrl, validateImageFile } from '@/lib/imageUtils';
+import { CustomerFeedbackManagement } from '@/components/CustomerFeedbackManagement';
 
 export function AdminMenuManagement() {
   const { 
@@ -37,6 +39,7 @@ export function AdminMenuManagement() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [newAddOn, setNewAddOn] = useState('');
   const [hoveredAddOnsId, setHoveredAddOnsId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'menu' | 'feedback'>('menu');
 
   // Form state for menu item
   const [itemFormData, setItemFormData] = useState<Omit<MenuItem, 'id'>>({
@@ -200,7 +203,14 @@ export function AdminMenuManagement() {
   };
 
   return (
-  <div className="space-y-8 relative">  {/* eto yung width container */}
+    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'menu' | 'feedback')} className="w-full">
+      <TabsList className="grid w-full grid-cols-2 mb-8">
+        <TabsTrigger value="menu">Menu Management</TabsTrigger>
+        <TabsTrigger value="feedback">Customer Feedback</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="menu">
+        <div className="space-y-8 relative">  {/* eto yung width container */}
       {/* Background effects */}
       <div className="absolute top-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-40 left-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl -z-10" />
@@ -649,6 +659,12 @@ export function AdminMenuManagement() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="feedback">
+        <CustomerFeedbackManagement />
+      </TabsContent>
+    </Tabs>
   );
 }
