@@ -1,0 +1,170 @@
+/* Food Showcase Carousel Theme Styles */
+
+.carousel-theme-container {
+  position: relative;
+}
+
+.carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Smooth continuous scroll for carousel content */
+[role="region"][aria-roledescription="carousel"] {
+  scroll-behavior: smooth;
+}
+
+/* Smooth sliding animation */
+[class*="CarouselContent"] {
+  animation: smoothScroll 0.8s ease-out;
+}
+
+/* Carousel Wrapper - Gradient Edges with better blending */
+.carousel-wrapper::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  background: linear-gradient(to right, hsl(var(--background)) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 30;
+}
+
+.carousel-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  background: linear-gradient(to left, hsl(var(--background)) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Food Cards with Enhanced Styling */
+.food-card {
+  perspective: 1000px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.food-card > div {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              border-color 0.3s ease-out;
+  height: 100%;
+  will-change: transform, box-shadow;
+}
+
+.food-card:hover > div {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 20px 40px hsl(var(--primary) / 0.15), 
+              0 0 20px hsl(var(--primary) / 0.1);
+}
+
+/* Image hover scale effect */
+.food-card img {
+  transition: transform 0.3s ease-out;
+}
+
+.food-card:hover img {
+  transform: scale(1.08);
+}
+
+/* Smooth scroll animation */
+@keyframes smoothScroll {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Carousel Controls Styling */
+.carousel-controls {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  z-index: 20;
+}
+
+.carousel-button-prev,
+.carousel-button-next {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--primary));
+  background: transparent;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-button-prev:hover,
+.carousel-button-next:hover {
+  background: hsl(var(--primary) / 0.1);
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.5);
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .carousel-wrapper::before,
+  .carousel-wrapper::after {
+    width: 1.5rem;
+  }
+
+  .carousel-controls {
+    bottom: -50px;
+    gap: 0.75rem;
+  }
+
+  .carousel-button-prev,
+  .carousel-button-next {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .carousel-wrapper::before,
+  .carousel-wrapper::after {
+    width: 2.5rem;
+  }
+
+  .carousel-controls {
+    padding: 0 1.5rem;
+  }
+
+  .food-card {
+    min-height: 410px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-wrapper::before,
+  .carousel-wrapper::after {
+    width: 4rem;
+  }
+
+  .carousel-controls {
+    padding: 0 2rem;
+  }
+
+  .carousel-button-prev,
+  .carousel-button-next {
+    width: 48px;
+    height: 48px;
+  }
+}
