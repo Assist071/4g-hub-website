@@ -85,7 +85,7 @@ export function Navigation() {
             <img src={logo} alt="4G Hub Logo" className="object-contain" style={{ width: '200px', height: '200px' }} />
           </Link>
           
-          {/* Navigation Items */}
+          {/* Navigation Items (Right) */}
           <div className="flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -113,6 +113,13 @@ export function Navigation() {
                 </Button>
               );
             })}
+
+            {/* Logout Button */}
+            {isStaffAuthenticated && (
+            <Button onClick={logout} variant="outline" className="gap-2 font-bold border-2 border-primary/50 hover:border-primary hover:bg-primary/5 transition-all">
+                <LogOut className="h-4 w-4" /> Logout
+              </Button>
+            )}
           </div>
         </div>
       </div>
