@@ -208,7 +208,7 @@ export function useOrderDatabase() {
    */
   const subscribeToOrders = (callback: (orders: any) => void) => {
     const subscription = supabase
-      .from('orders')
+      .channel('orders')
       .on(
         'postgres_changes',
         {

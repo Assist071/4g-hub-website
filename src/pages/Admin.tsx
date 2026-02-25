@@ -134,7 +134,7 @@
     }, [orders]);
 
     // Time range selection for revenue chart (7d / 30d / 90d)
-    const [revenueRange, setRevenueRange] = useState<'7d' | '30d' | '90d'>('30d');
+    const [revenueRange, setRevenueRange] = useState<'7d' | '30d' | '90d'>('7d');
 
     const revenueChartData = useMemo(() => {
       if (!revenueData || revenueData.length === 0) return [];

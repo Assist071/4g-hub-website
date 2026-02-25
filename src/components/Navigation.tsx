@@ -116,8 +116,13 @@ export function Navigation() {
 
             {/* Logout Button */}
             {isStaffAuthenticated && (
-            <Button onClick={logout} variant="outline" className="gap-2 font-bold border-2 border-primary/50 hover:border-primary hover:bg-primary/5 transition-all">
-                <LogOut className="h-4 w-4" /> Logout
+              <Button 
+                onClick={handleLogout}
+                variant="ghost"
+                className="gap-2 font-bold border-2 border-primary/50 hover:border-primary hover:bg-primary/5 transition-all"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">Logout</span>
               </Button>
             )}
           </div>

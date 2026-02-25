@@ -89,7 +89,8 @@ export function KitchenDashboard() {
       <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none -z-10" />
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
       
-      <div className="mb-8 relative z-10">
+      <div className="container mx-auto px-4 relative z-10">
+      <div className="mb-8">
         <h1 className="text-4xl md:text-2xl font-bold  neon-glow cyber-text flex items-center gap-3 mb-2">
           <ChefHat className="h-10 w-10" />
           Kitchen Dashboard
@@ -200,6 +201,7 @@ export function KitchenDashboard() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
