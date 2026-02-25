@@ -68,14 +68,6 @@ const Landing = () => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => scrollToSection('visit-us')}
-          className="text-xs font-ethnocentric"
-        >
-          Visit
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
           onClick={() => scrollToSection('get-touch')}
           className="text-xs font-ethnocentric"
         >
@@ -264,78 +256,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Visit Us Section */}
-      <section id="visit-us" className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-8 cyber-text neon-glow">
-                Visit Us
-              </h2>
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="p-3 rounded-lg bg-primary text-primary-foreground w-fit h-fit">
-                    <MapPin className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">Location</h3>
-                    <p className="text-muted-foreground">
-                      4G HUB Cafe<br />
-                      123 Gaming Street<br />
-                      Tech City, TC 12345
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="p-3 rounded-lg bg-secondary text-secondary-foreground w-fit h-fit">
-                    <Clock className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">Hours</h3>
-                    <p className="text-muted-foreground">
-                      Monday - Friday: 10:00 AM - 11:00 PM<br />
-                      Saturday - Sunday: 9:00 AM - 12:00 AM<br />
-                      Holidays: 12:00 PM - 10:00 PM
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="p-3 rounded-lg bg-accent text-accent-foreground w-fit h-fit">
-                    <Wifi className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">Connectivity</h3>
-                    <p className="text-muted-foreground">
-                      High-speed 5G Network<br />
-                      Free WiFi throughout<br />
-                      Backup Power Systems
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="tech-card corner-bracket p-8 bg-muted/50">
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
-                  <MapPin className="h-16 w-16 text-primary/50" />
-                </div>
-                <h3 className="font-bold text-xl mb-4 font-ethnocentric">Easy to Find</h3>
-                <p className="text-muted-foreground mb-6">
-                  Located in the heart of the city with easy access and ample parking. Perfect spot for gamers and food lovers!
-                </p>
-                <Button className="w-full gap-2 neon-glow-primary">
-                  Get Directions <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Get in Touch Section */}
       <section id="get-touch" className="py-20 md:py-28">
         <div className="container mx-auto px-4">

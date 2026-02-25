@@ -38,6 +38,7 @@ export function AdminMenuManagement() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [newAddOn, setNewAddOn] = useState('');
+  const [newAddOnPrice, setNewAddOnPrice] = useState(0);
   const [newFlavor, setNewFlavor] = useState('');
   const [hoveredAddOnsId, setHoveredAddOnsId] = useState<string | null>(null);
   const [hoveredFlavorId, setHoveredFlavorId] = useState<string | null>(null);
@@ -170,9 +171,10 @@ export function AdminMenuManagement() {
     if (newAddOn.trim()) {
       setItemFormData({
         ...itemFormData,
-        customization: [...(itemFormData.customization || []), newAddOn.trim()]
+        customization: [...(itemFormData.customization || []), { name: newAddOn.trim(), price: newAddOnPrice }]
       });
       setNewAddOn('');
+      setNewAddOnPrice(0);
     }
   };
 
@@ -498,7 +500,17 @@ export function AdminMenuManagement() {
                         onChange={(e) => setNewAddOn(e.target.value)}
                         placeholder="e.g., Extra Spicy, Mild, Large Size"
                         onKeyPress={(e) => e.key === 'Enter' && handleAddAddOn()}
-                        className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300"
+                        className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 flex-1"
+                      />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newAddOnPrice || ''}
+                        onChange={(e) => setNewAddOnPrice(parseFloat(e.target.value) || 0)}
+                        placeholder="Price"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddAddOn()}
+                        className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 w-24"
                       />
                       <Button
                         type="button"
@@ -515,21 +527,25 @@ export function AdminMenuManagement() {
                       <div className="space-y-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
                         <p className="text-xs text-muted-foreground font-ethnocentric font-semibold">Added customizations:</p>
                         <div className="flex flex-wrap gap-2">
-                          {itemFormData.customization.map((addOn, index) => (
-                            <div
-                              key={index}
-                              className="inline-flex items-center gap-2 bg-primary/30 text-foreground px-3 py-1.5 rounded-full text-sm border border-primary/50 hover:bg-primary/40 transition-colors"
-                            >
-                              <span className="font-ethnocentric">{addOn}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveAddOn(index)}
-                                className="ml-1 hover:text-primary transition-colors"
+                          {itemFormData.customization.map((addOn, index) => {
+                            const addonObj = typeof addOn === 'string' ? { name: addOn, price: 0 } : addOn;
+                            return (
+                              <div
+                                key={index}
+                                className="inline-flex items-center gap-2 bg-primary/30 text-foreground px-3 py-1.5 rounded-full text-sm border border-primary/50 hover:bg-primary/40 transition-colors"
                               >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
+                                <span className="font-ethnocentric">{addonObj.name}</span>
+                                {addonObj.price > 0 && <span className="font-semibold">+₱{addonObj.price.toFixed(2)}</span>}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveAddOn(index)}
+                                  className="ml-1 hover:text-primary transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -566,7 +582,7 @@ export function AdminMenuManagement() {
                           {itemFormData.flavors.map((flavor, index) => (
                             <div
                               key={index}
-                              className="inline-flex items-center gap-2 bg-secondary/30 text-foreground px-3 py-1.5 rounded-full text-sm border border-secondary/50 hover:bg-secondary/40 transition-colors"
+                                className="inline-flex items-center gap-2 bg-primary/30 text-foreground px-3 py-1.5 rounded-full text-sm border border-primary/50 hover:bg-primary/40 transition-colors"
                             >
                               <span className="font-ethnocentric">{flavor}</span>
                               <button
@@ -672,18 +688,23 @@ export function AdminMenuManagement() {
                         </PopoverTrigger>
                         <PopoverContent className="w-auto tech-card border-primary/30 p-4">
                           <div className="space-y-3">
-                            <div className="flex items-center gap-2 border-b border-primary/20 pb-2">
+                            <div className="flex items-center gap-2 border-b border-primary/60 pb-3 mb-3">
                               <span className="text-lg">🎯</span>
                               <p className="text-xs font-ethnocentric font-semibold text-primary">CUSTOMIZATIONS (ADD-ONS)</p>
                             </div>
                             <div className="space-y-1.5">
-                              {item.customization.map((addon, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-sm bg-primary/10 px-3 py-2 rounded border border-primary/20 hover:bg-primary/20 transition-colors">
-                                  <span className="text-primary font-bold">✓</span>
-                                  <span className="font-ethnocentric">{addon}</span>
-
-                                </div>
-                              ))}
+                              {item.customization.map((addon, idx) => {
+                                const addonObj = typeof addon === 'string' ? { name: addon, price: 0 } : addon;
+                                return (
+                                  <div key={idx} className="flex items-center gap-2 text-sm bg-primary/15 px-3 py-2 rounded border-2 border-primary/60 hover:bg-primary/25 hover:border-primary/80 transition-colors">
+                                    <span className="text-primary font-bold text-lg">✓</span>
+                                    <span className="font-ethnocentric flex-1">{typeof addonObj === 'string' ? addonObj : addonObj.name}</span>
+                                    {typeof addonObj === 'object' && addonObj.price > 0 && (
+                                      <span className="text-primary font-semibold text-xs">+₱{addonObj.price.toFixed(2)}</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </PopoverContent>
@@ -711,14 +732,14 @@ export function AdminMenuManagement() {
                         </PopoverTrigger>
                         <PopoverContent className="w-auto tech-card border-accent/30 p-4">
                           <div className="space-y-3">
-                            <div className="flex items-center gap-2 border-b border-accent/20 pb-2">
+                            <div className="flex items-center gap-2 border-b border-primary/60 pb-3 mb-3">
                               <span className="text-lg">🍨</span>
                               <p className="text-xs font-ethnocentric font-semibold text-primary">FLAVORS</p>
                             </div>
                             <div className="space-y-1.5">
                               {item.flavors.map((flavor, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-sm bg-accent/10 px-3 py-2 rounded border border-accent/20 hover:bg-accent/20 transition-colors">
-                                  <span className="text-accent font-bold">✓</span>
+                                  <div key={idx} className="flex items-center gap-2 text-sm bg-primary/15 px-3 py-2 rounded border-2 border-primary/60 hover:bg-primary/25 hover:border-primary/80 transition-colors">
+                                  <span className="text-primary font-bold">✓</span>
                                   <span className="font-ethnocentric">{flavor}</span>
                                 </div>
                               ))}

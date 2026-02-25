@@ -6,7 +6,7 @@ export interface MenuItem {
   category: string;
   image?: string;
   available: boolean;
-  customization?: string[];
+  customization?: (string | { name: string; price: number })[];
   flavors?: string[];
   quantity?: number;
 }

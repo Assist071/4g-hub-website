@@ -120,12 +120,32 @@ export function QueueDisplay() {
                         {item.quantity}x {item.menuItem.name}
                         {item.customizations.length > 0 && (
                           <span className="text-muted-foreground ml-2">
-                            ({item.customizations.join(', ')})
+                            ({item.customizations.map(c => {
+                              try {
+                                return typeof c === 'string' && c.startsWith('{') ? JSON.parse(c).name : c;
+                              } catch (e) {
+                                return c;
+                              }
+                            }).join(', ')})
                           </span>
                         )}
                       </span>
                       <span className="font-semibold text-primary neon-glow">
-                        ₱{(item.menuItem.price * item.quantity).toFixed(2)}
+                        ₱{(() => {
+                          const basePrice = item.menuItem.price * item.quantity;
+                          const customizationPrice = item.customizations.reduce((total, custom) => {
+                            try {
+                              if (typeof custom === 'string' && custom.startsWith('{')) {
+                                const parsed = JSON.parse(custom);
+                                return total + (parsed.price || 0);
+                              }
+                            } catch (e) {
+                              // If parsing fails, skip
+                            }
+                            return total;
+                          }, 0);
+                          return (basePrice + (customizationPrice * item.quantity)).toFixed(2);
+                        })()}
                       </span>
                     </div>
                   ))}

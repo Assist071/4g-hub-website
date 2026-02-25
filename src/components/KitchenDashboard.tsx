@@ -37,7 +37,13 @@ export function KitchenDashboard() {
                 <div className="font-semibold text-foreground">{item.quantity}x {item.menuItem.name}</div>
                 {item.customizations.length > 0 && (
                   <div className="text-sm text-muted-foreground">
-                    Custom: {item.customizations.join(', ')}
+                    Custom: {item.customizations.map(c => {
+                      try {
+                        return typeof c === 'string' && c.startsWith('{') ? JSON.parse(c).name : c;
+                      } catch (e) {
+                        return c;
+                      }
+                    }).join(', ')}
                   </div>
                 )}
                 {item.notes && (
@@ -47,7 +53,21 @@ export function KitchenDashboard() {
                 )}
               </div>
               <div className="text-sm font-bold text-primary neon-glow ml-2">
-                ₱{(item.menuItem.price * item.quantity).toFixed(2)}
+                ₱{(() => {
+                  const basePrice = item.menuItem.price * item.quantity;
+                  const customizationPrice = item.customizations.reduce((total, custom) => {
+                    try {
+                      if (typeof custom === 'string' && custom.startsWith('{')) {
+                        const parsed = JSON.parse(custom);
+                        return total + (parsed.price || 0);
+                      }
+                    } catch (e) {
+                      // If parsing fails, skip
+                    }
+                    return total;
+                  }, 0);
+                  return (basePrice + (customizationPrice * item.quantity)).toFixed(2);
+                })()}
               </div>
             </div>
           ))}

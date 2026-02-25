@@ -62,7 +62,8 @@ CREATE TABLE menu_items (
   image TEXT,
   available BOOLEAN DEFAULT true,
   quantity INTEGER DEFAULT 0,
-  customization TEXT[] DEFAULT '{}',
+  customization JSONB[] DEFAULT ARRAY[]::jsonb[],  -- Changed from TEXT[]
+  flavors TEXT[] DEFAULT '{}',                      -- Add this if missing
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );

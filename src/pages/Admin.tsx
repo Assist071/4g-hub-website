@@ -417,8 +417,16 @@
                           <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                           <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                           <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#7C3AED', strokeWidth: 2, opacity: 0.5 }} />
-                          <Line type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={3} dot={false} activeDot={{ r: 8, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} />
-                          <Area type="monotone" dataKey="total" stroke="none" fill="url(#gradRevenue)" />
+                          <Line 
+                            type="linear" 
+                            dataKey="total" 
+                            stroke="#7C3AED" 
+                            strokeWidth={3} 
+                            dot={{ fill: '#7C3AED', r: 4 }}
+                            activeDot={{ r: 7, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }}
+                            isAnimationActive={false}
+                          />
+                          <Area type="linear" dataKey="total" stroke="none" fill="url(#gradRevenue)" isAnimationActive={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>

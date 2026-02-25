@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Utensils, Plus, Loader, Monitor, ChefHat, ArrowLeft } from 'lucide-react';
+import { Utensils, Plus, Loader, Monitor, ChefHat, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export default function Menu() {
   const { addToOrder } = useOrderStore();
@@ -25,6 +25,8 @@ export default function Menu() {
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const filteredItems = selectedCategory === 'all' 
     ? menuItems 
@@ -47,20 +49,42 @@ export default function Menu() {
     }
   };
 
-  const handleCustomizationChange = (option: string, checked: boolean) => {
+  const handleCustomizationChange = (option: any, checked: boolean) => {
     if (checked) {
-      setSelectedCustomizations(prev => [...prev, option]);
+      // Store the full option object as JSON string
+      const optionString = typeof option === 'string' ? JSON.stringify({ name: option, price: 0 }) : JSON.stringify(option);
+      setSelectedCustomizations(prev => [...prev, optionString]);
     } else {
-      setSelectedCustomizations(prev => prev.filter(item => item !== option));
+      // Remove based on matching JSON
+      setSelectedCustomizations(prev => 
+        prev.filter(item => {
+          try {
+            const parsed = JSON.parse(item);
+            const optionName = typeof option === 'string' ? option : option.name;
+            return parsed.name !== optionName;
+          } catch {
+            return item !== option;
+          }
+        })
+      );
     }
   };
 
   const handleFlavorChange = (flavor: string, checked: boolean) => {
     if (checked) {
-      setSelectedFlavors(prev => [...prev, flavor]);
+      // Only allow one flavor at a time
+      setSelectedFlavors([flavor]);
     } else {
-      setSelectedFlavors(prev => prev.filter(item => item !== flavor));
+      setSelectedFlavors([]);
     }
+  };
+
+  const handleOrderSuccess = (orderNumber: number) => {
+    setSuccessMessage(`Order #${orderNumber} Successfully Submitted!`);
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 4000);
   };
 
   return (
@@ -81,6 +105,16 @@ export default function Menu() {
           <h1 className="text-2xl md:text-3xl font-bold cyber-text neon-glow">Select Your Order</h1>
           <div className="w-16" />
         </div>
+
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="tech-card corner-bracket p-5 bg-gradient-to-r from-primary/20 to-accent/20 border-2 border-primary/50 flex items-center gap-3 shadow-2xl max-w-xs">
+            <CheckCircle className="h-6 w-6 text-primary neon-glow animate-pulse flex-shrink-0" />
+            <span className="text-sm font-bold text-primary neon-glow">{successMessage}</span>
+          </div>
+        </div>
+      )}
      
 
       {/* Loading State */}
@@ -196,7 +230,7 @@ export default function Menu() {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="tech-card corner-bracket edge-pulse p-0 overflow-hidden">
-                <OrderCart />
+                <OrderCart onOrderSuccess={handleOrderSuccess} />
               </div>
             </div>
           </div>
@@ -204,7 +238,7 @@ export default function Menu() {
 
         {/* Add to Order Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md tech-card corner-bracket border-2 border-primary/50">
+          <DialogContent className="sm:max-w-2xl tech-card corner-bracket border-2 border-primary/50 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="cyber-text neon-glow text-2xl">Add to Order</DialogTitle>
             </DialogHeader>
@@ -253,19 +287,41 @@ export default function Menu() {
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold">Customization Options</Label>
                     <div className="tech-card p-4 border border-primary/30 space-y-3">
-                      {selectedItem.customization.map((option) => (
-                        <div key={option} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option}
-                            checked={selectedCustomizations.includes(option)}
-                            onCheckedChange={(checked) => 
-                              handleCustomizationChange(option, !!checked)
-                            }
-                            className="border-primary/50"
-                          />
-                          <Label htmlFor={option} className="text-sm font-normal cursor-pointer">{option}</Label>
+                      {selectedItem.customization.map((option) => {
+                        const optionObj = typeof option === 'string' ? { name: option, price: 0 } : option;
+                        const optionKey = typeof option === 'string' ? option : option.name;
+                        const isSelected = selectedCustomizations.some(item => {
+                          try {
+                            const parsed = JSON.parse(item);
+                            return parsed.name === optionKey;
+                          } catch {
+                            return false;
+                          }
+                        });
+                        return (
+                        <div key={optionKey} className="flex items-center justify-between w-full">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={optionKey}
+                              checked={isSelected}
+                              onCheckedChange={(checked) => 
+                                handleCustomizationChange(optionObj, !!checked)
+                              }
+                              className="border-primary/50"
+                            />
+                            <Label htmlFor={optionKey} className="text-sm font-normal cursor-pointer">
+                              {optionObj.name}
+                            </Label>
+                          </div>
+
+                          {optionObj.price > 0 && (
+                            <span className="text-primary font-semibold">
+                              +₱{optionObj.price.toFixed(2)}
+                            </span>
+                          )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -304,10 +360,44 @@ export default function Menu() {
                 </div>
 
                 <div className="pt-4 border-t border-primary/20 space-y-3">
-                  <div className="tech-card p-4 bg-primary/5 border border-primary/30 flex justify-between items-center">
-                    <span className="text-sm font-semibold text-muted-foreground">Total Amount</span>
-                    <div className="text-2xl font-bold text-primary neon-glow">
-                      ₱{(selectedItem.price * quantity).toFixed(2)}
+                  <div className="tech-card p-4 bg-primary/5 border border-primary/30 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-semibold">₱{(selectedItem.price * quantity).toFixed(2)}</span>
+                    </div>
+                    {(() => {
+                      const addonsTotal = selectedCustomizations.reduce((total, custom) => {
+                        try {
+                          const parsed = JSON.parse(custom);
+                          return total + (parsed.price || 0);
+                        } catch {
+                          return total;
+                        }
+                      }, 0) * quantity;
+                      
+                      return addonsTotal > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Add-ons</span>
+                          <span className="font-semibold text-accent">+₱{addonsTotal.toFixed(2)}</span>
+                        </div>
+                      );
+                    })()}
+                    <div className="pt-2 border-t border-primary/30 flex justify-between items-center">
+                      <span className="font-bold text-primary">Total</span>
+                      <div className="text-2xl font-bold text-primary neon-glow">
+                        ₱{(() => {
+                          const baseTotal = selectedItem.price * quantity;
+                          const addonsTotal = selectedCustomizations.reduce((total, custom) => {
+                            try {
+                              const parsed = JSON.parse(custom);
+                              return total + (parsed.price || 0);
+                            } catch {
+                              return total;
+                            }
+                          }, 0) * quantity;
+                          return (baseTotal + addonsTotal).toFixed(2);
+                        })()}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">

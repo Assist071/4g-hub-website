@@ -9,7 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Minus, Plus, X, ShoppingCart, CheckCircle } from 'lucide-react';
 import { useOrderStore } from '@/store/orderStore';
 
-export function OrderCart() {
+interface OrderCartProps {
+  onOrderSuccess?: (orderNumber: number) => void;
+}
+
+export function OrderCart({ onOrderSuccess }: OrderCartProps) {
   const { 
     currentOrder, 
     removeFromOrder, 
@@ -43,6 +47,11 @@ export function OrderCart() {
       setSuccessMessage(`Order #${order.orderNumber} submitted!`);
       setShowSuccess(true);
       setPcNumber('');
+      
+      // Call the callback to show success in parent component
+      if (onOrderSuccess) {
+        onOrderSuccess(order.orderNumber);
+      }
       
       setTimeout(() => {
         setShowSuccess(false);
@@ -113,29 +122,80 @@ export function OrderCart() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-base text-primary leading-tight">{item.menuItem.name}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">₱{item.menuItem.price.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Base: ₱{item.menuItem.price.toFixed(2)}</p>
+                  
+                  {/* Add-ons with individual prices */}
                   {item.customizations.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {item.customizations.slice(0, 2).map((custom, index) => (
-                        <Badge key={index} variant="outline" className="text-xs border-primary/30">
-                          {custom}
-                        </Badge>
-                      ))}
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-semibold text-primary/70">Add-ons:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {item.customizations.map((custom, index) => {
+                          let displayText = custom;
+                          let price = 0;
+                          try {
+                            if (typeof custom === 'string' && custom.startsWith('{')) {
+                              const parsed = JSON.parse(custom);
+                              displayText = parsed.name || custom;
+                              price = parsed.price || 0;
+                            }
+                          } catch (e) {
+                            displayText = custom;
+                          }
+                          return (
+                            <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-primary/5">
+                              {displayText} {price > 0 ? `+₱${price.toFixed(2)}` : ''}
+                            </Badge>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                   {item.flavors && item.flavors.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {item.flavors.map((flavor, index) => (
-                        <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-primary/5">
-                           {flavor}
+                        <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-accent/10">
+                           🔥 {flavor}
                         </Badge>
                       ))}
                     </div>
                   )}
                 </div>
                 
-                <div className="text-sm font-bold text-primary neon-glow min-w-[70px] text-right">
-                  ₱{(item.menuItem.price * item.quantity).toFixed(2)}
+                <div className="text-right">
+                  {(() => {
+                    const basePrice = item.menuItem.price * item.quantity;
+                    const customizationPrice = item.customizations.reduce((total, custom) => {
+                      try {
+                        if (typeof custom === 'string' && custom.startsWith('{')) {
+                          const parsed = JSON.parse(custom);
+                          return total + (parsed.price || 0);
+                        }
+                      } catch (e) {
+                        // If parsing fails, skip
+                      }
+                      return total;
+                    }, 0);
+                    const totalAddonsPrice = customizationPrice * item.quantity;
+                    const itemTotal = basePrice + totalAddonsPrice;
+                    
+                    return (
+                      <div className="space-y-1">
+                        {customizationPrice > 0 && (
+                          <>
+                            <p className="text-xs text-muted-foreground">Add-ons: +₱{totalAddonsPrice.toFixed(2)}</p>
+                            <div className="text-sm font-bold text-primary neon-glow">
+                              ₱{itemTotal.toFixed(2)}
+                            </div>
+                          </>
+                        )}
+                        {customizationPrice === 0 && (
+                          <div className="text-sm font-bold text-primary neon-glow">
+                            ₱{itemTotal.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -176,10 +236,47 @@ export function OrderCart() {
 
       {/* Footer with Total and Submit */}
       <div className="border-t border-primary/20 bg-gradient-to-t from-primary/5 to-transparent p-6 space-y-4 mt-auto">
-        <div className="tech-card p-4 bg-primary/5 border border-primary/30 flex justify-between items-center">
-          <span className="text-sm font-semibold text-muted-foreground">Total Amount</span>
-          <div className="text-2xl font-bold text-primary neon-glow">
-            ₱{total.toFixed(2)}
+        {/* Breakdown Summary */}
+        <div className="tech-card p-4 bg-primary/5 border border-primary/30 space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Subtotal (Items)</span>
+            <span className="font-semibold">₱{(() => {
+              const subtotal = currentOrder.reduce((total, item) => {
+                return total + (item.menuItem.price * item.quantity);
+              }, 0);
+              return subtotal.toFixed(2);
+            })()}</span>
+          </div>
+          
+          {(() => {
+            const addonsTotal = currentOrder.reduce((total, item) => {
+              const customizationPrice = item.customizations.reduce((customTotal, custom) => {
+                try {
+                  if (typeof custom === 'string' && custom.startsWith('{')) {
+                    const parsed = JSON.parse(custom);
+                    return customTotal + (parsed.price || 0);
+                  }
+                } catch (e) {
+                  // If parsing fails, skip
+                }
+                return customTotal;
+              }, 0);
+              return total + (customizationPrice * item.quantity);
+            }, 0);
+            
+            return addonsTotal > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Add-ons Total</span>
+                <span className="font-semibold text-accent">+₱{addonsTotal.toFixed(2)}</span>
+              </div>
+            );
+          })()}
+          
+          <div className="pt-2 border-t border-primary/30 flex justify-between items-center">
+            <span className="text-base font-bold text-primary">Grand Total</span>
+            <div className="text-2xl font-bold text-primary neon-glow">
+              ₱{total.toFixed(2)}
+            </div>
           </div>
         </div>
         

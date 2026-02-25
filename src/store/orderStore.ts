@@ -498,7 +498,24 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
   // Getters
   getCurrentOrderTotal: () => {
     const { currentOrder } = get();
-    return currentOrder.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
+    return currentOrder.reduce((total, item) => {
+      const basePrice = item.menuItem.price * item.quantity;
+      
+      // Calculate customization prices
+      const customizationPrice = item.customizations.reduce((customTotal, custom) => {
+        try {
+          if (typeof custom === 'string' && custom.startsWith('{')) {
+            const parsed = JSON.parse(custom);
+            return customTotal + (parsed.price || 0);
+          }
+        } catch (e) {
+          // If parsing fails, skip
+        }
+        return customTotal;
+      }, 0);
+      
+      return total + basePrice + (customizationPrice * item.quantity);
+    }, 0);
   },
 
   getOrdersByStatus: (status) => {
