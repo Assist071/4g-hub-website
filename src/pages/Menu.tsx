@@ -84,7 +84,7 @@ export default function Menu() {
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
-    }, 4000);
+    }, 3000);
   };
 
   return (
@@ -378,7 +378,7 @@ export default function Menu() {
                       return addonsTotal > 0 && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Add-ons</span>
-                          <span className="font-semibold text-accent">+₱{addonsTotal.toFixed(2)}</span>
+                          <span className="font-semibold">+₱{addonsTotal.toFixed(2)}</span>
                         </div>
                       );
                     })()}

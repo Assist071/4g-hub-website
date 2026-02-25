@@ -124,39 +124,49 @@ export function OrderCart({ onOrderSuccess }: OrderCartProps) {
                   <h4 className="font-bold text-base text-primary leading-tight">{item.menuItem.name}</h4>
                   <p className="text-xs text-muted-foreground mt-1">Base: ₱{item.menuItem.price.toFixed(2)}</p>
                   
-                  {/* Add-ons with individual prices */}
-                  {item.customizations.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      <p className="text-xs font-semibold text-primary/70">Add-ons:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {item.customizations.map((custom, index) => {
-                          let displayText = custom;
-                          let price = 0;
-                          try {
-                            if (typeof custom === 'string' && custom.startsWith('{')) {
-                              const parsed = JSON.parse(custom);
-                              displayText = parsed.name || custom;
-                              price = parsed.price || 0;
-                            }
-                          } catch (e) {
-                            displayText = custom;
-                          }
-                          return (
-                            <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-primary/5">
-                              {displayText} {price > 0 ? `+₱${price.toFixed(2)}` : ''}
-                            </Badge>
-                          );
-                        })}
+                  {/* Flavor Display */}
+                  {item.flavors && item.flavors.length > 0 && (
+                    <div className="mt-3 pt-2 border-t border-primary/20">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-primary/70">Flavor:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {item.flavors.map((flavor, index) => (
+                              <div key={index} className="flex justify-between items-center text-xs bg-primary/5 px-2 py-1 rounded border border-primary/20">
+                              {flavor}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
-                  {item.flavors && item.flavors.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {item.flavors.map((flavor, index) => (
-                        <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-accent/10">
-                           🔥 {flavor}
-                        </Badge>
-                      ))}
+
+                  {/* Add-ons with individual prices */}
+                  {item.customizations.length > 0 && (
+                    <div className="mt-3 pt-2 border-t border-primary/20">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-primary/70">Add-ons:</p>
+                        <div className="space-y-1">
+                          {item.customizations.map((custom, index) => {
+                            let displayText = custom;
+                            let price = 0;
+                            try {
+                              if (typeof custom === 'string' && custom.startsWith('{')) {
+                                const parsed = JSON.parse(custom);
+                                displayText = parsed.name || custom;
+                                price = parsed.price || 0;
+                              }
+                            } catch (e) {
+                              displayText = custom;
+                            }
+                            return (
+                              <div key={index} className="flex justify-between items-center text-xs bg-primary/5 px-2 py-1 rounded border border-primary/20">
+                                <span>{displayText}</span>
+                                {price > 0 && <span className="font-semibold">+₱{price.toFixed(2)}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -180,14 +190,7 @@ export function OrderCart({ onOrderSuccess }: OrderCartProps) {
                     
                     return (
                       <div className="space-y-1">
-                        {customizationPrice > 0 && (
-                          <>
-                            <p className="text-xs text-muted-foreground">Add-ons: +₱{totalAddonsPrice.toFixed(2)}</p>
-                            <div className="text-sm font-bold text-primary neon-glow">
-                              ₱{itemTotal.toFixed(2)}
-                            </div>
-                          </>
-                        )}
+                     
                         {customizationPrice === 0 && (
                           <div className="text-sm font-bold text-primary neon-glow">
                             ₱{itemTotal.toFixed(2)}

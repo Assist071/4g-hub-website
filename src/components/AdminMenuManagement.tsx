@@ -32,6 +32,7 @@ export function AdminMenuManagement() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'item' | 'category'; id: string } | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -203,11 +204,18 @@ export function AdminMenuManagement() {
   };
 
   const handleAddCategory = () => {
+    setSelectedCategory(null);
     setCategoryFormData({
       name: '',
       description: '',
       icon: '🍽️',
     });
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleEditCategory = (category: MenuCategory) => {
+    setSelectedCategory(category);
+    setCategoryFormData(category);
     setIsCategoryDialogOpen(true);
   };
 
@@ -219,6 +227,7 @@ export function AdminMenuManagement() {
 
     await addMenuCategory(categoryFormData);
     setIsCategoryDialogOpen(false);
+    setSelectedCategory(null);
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -260,7 +269,7 @@ export function AdminMenuManagement() {
             </DialogTrigger>
             <DialogContent className="tech-card border-primary/30">
               <DialogHeader>
-                <DialogTitle className="font-ethnocentric neon-glow text-lg">Add New Category</DialogTitle>
+                <DialogTitle className="font-ethnocentric neon-glow text-lg">{selectedCategory ? '✏️ Edit Category' : '➕ Add New Category'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div>
@@ -296,32 +305,61 @@ export function AdminMenuManagement() {
                 <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)} className="border-primary/30 hover:bg-primary/5 transition-colors">
                   Cancel
                 </Button>
-                <Button onClick={handleSaveCategory} className="bg-primary hover:bg-primary/90 neon-glow-primary transition-all duration-300">Save Category</Button>
+                <Button onClick={handleSaveCategory} className="bg-primary hover:bg-primary/90 neon-glow-primary transition-all duration-300">{selectedCategory ? '💾 Update Category' : '➕ Add Category'}</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {menuCategories.map((category) => (
-            <div key={category.id} className="tech-card corner-bracket edge-pulse p-4 flex items-center justify-between scan-line overflow-hidden border-primary/20">
-              <div className="flex-1 relative z-10">
-                <div className="text-3xl mb-2">{category.icon}</div>
-                <p className="font-semibold text-sm font-ethnocentric group-hover:text-primary transition-colors">{category.name}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setDeleteTarget({ type: 'category', id: category.id });
-                  setIsDeleteOpen(true);
-                }}
-                className="hover:bg-primary/20 hover:text-primary transition-colors"
+        <div className="grid grid-cols-5 gap-5">
+          {menuCategories.map((category) => {
+            const categoryItemCount = menuItems.filter(item => item.category === category.id).length;
+            return (
+              <div 
+                key={category.id} 
+                className="tech-card corner-bracket p-5 border-primary/30 hover:border-primary/50 transition-all duration-300 group flex flex-col h-full hover:shadow-lg hover:shadow-primary/20"
               >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="text-5xl group-hover:scale-110 transition-transform duration-300">{category.icon}</div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditCategory(category)}
+                      className="hover:bg-primary/20 hover:text-primary opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteTarget({ type: 'category', id: category.id });
+                        setIsDeleteOpen(true);
+                      }}
+                      className="hover:bg-red-500/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg font-ethnocentric group-hover:text-primary transition-colors mb-2">{category.name}</h3>
+                  {category.description && (
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2 group-hover:text-foreground/70 transition-colors">{category.description}</p>
+                  )}
+                </div>
+
+                <div className="border-t border-primary/20 pt-4 mt-4 flex items-center justify-between">
+                  <span className="text-xs font-ethnocentric text-muted-foreground">Items in category</span>
+                  <div className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-ethnocentric font-bold border border-primary/40 group-hover:bg-primary/30 transition-colors">
+                    {categoryItemCount}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

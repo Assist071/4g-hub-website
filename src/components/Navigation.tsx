@@ -113,20 +113,6 @@ export function Navigation() {
                 </Button>
               );
             })}
-            
-            {(isAdminAuthenticated || isStaffAuthenticated) && (
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
-                {isStaffAuthenticated && (
-                  <Badge variant="outline" className="text-xs">
-                    {staffRole?.toUpperCase()}
-                  </Badge>
-                )}
-                <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2">
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline text-sm">Logout</span>
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>

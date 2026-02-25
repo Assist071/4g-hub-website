@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Lock, Shield, Mail, Eye, EyeOff, ChefHat, Loader } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Lock, Shield, Mail, Eye, EyeOff, ChefHat, Loader, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,13 +17,23 @@ export default function AdminLogin() {
   const [staffPassword, setStaffPassword] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [showStaffPassword, setShowStaffPassword] = useState(false);
-  const { login, staffLogin, error, isLoading, clearError } = useAuthStore();
+  const [lockoutCountdown, setLockoutCountdown] = useState<number | null>(null);
+  const { login, staffLogin, error, isLoading, clearError, accountLocked, lockoutTimeRemaining } = useAuthStore();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+
+    if (accountLocked) {
+      toast({
+        title: "Account Locked",
+        description: `Account temporarily locked. Try again in ${lockoutTimeRemaining} seconds.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const success = await login(adminEmail, adminPassword);
 
@@ -31,8 +42,13 @@ export default function AdminLogin() {
         title: "Admin Login Successful",
         description: "Redirecting to admin panel...",
       });
+      setAdminEmail('');
+      setAdminPassword('');
       navigate('/admin');
     } else {
+      if (accountLocked) {
+        setLockoutCountdown(lockoutTimeRemaining);
+      }
       toast({
         title: "Access Denied",
         description: error || "Invalid email or password. Please try again.",
@@ -46,6 +62,15 @@ export default function AdminLogin() {
     e.preventDefault();
     clearError();
 
+    if (accountLocked) {
+      toast({
+        title: "Account Locked",
+        description: `Account temporarily locked. Try again in ${lockoutTimeRemaining} seconds.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const success = await staffLogin(staffEmail, staffPassword);
 
     if (success) {
@@ -53,8 +78,13 @@ export default function AdminLogin() {
         title: "Staff Login Successful",
         description: "Redirecting to your dashboard...",
       });
+      setStaffEmail('');
+      setStaffPassword('');
       navigate('/queue');
     } else {
+      if (accountLocked) {
+        setLockoutCountdown(lockoutTimeRemaining);
+      }
       toast({
         title: "Access Denied",
         description: error || "Invalid email or password. Please try again.",
@@ -142,20 +172,28 @@ export default function AdminLogin() {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                    {error}
-                  </div>
+                  <Alert className="bg-destructive/10 border-destructive/20">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription className="text-destructive ml-2">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
                 )}
 
                 <Button
                   type="submit"
                   className="w-full gap-2 neon-glow-primary"
-                  disabled={isLoading || !adminEmail.trim() || !adminPassword.trim()}
+                  disabled={isLoading || !adminEmail.trim() || !adminPassword.trim() || accountLocked}
                 >
                   {isLoading ? (
                     <>
                       <Loader className="h-4 w-4 animate-spin" />
                       Signing in...
+                    </>
+                  ) : accountLocked ? (
+                    <>
+                      <AlertTriangle className="h-4 w-4" />
+                      Account Locked ({lockoutTimeRemaining}s)
                     </>
                   ) : (
                     <>
@@ -165,12 +203,6 @@ export default function AdminLogin() {
                   )}
                 </Button>
               </form>
-
-              <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                <p className="text-xs text-foreground">
-                  🔒 Supabase authentication required
-                </p>
-              </div>
             </TabsContent>
 
             {/* Staff Login Tab */}
@@ -225,20 +257,28 @@ export default function AdminLogin() {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                    {error}
-                  </div>
+                  <Alert className="bg-destructive/10 border-destructive/20">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription className="text-destructive ml-2">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
                 )}
 
                 <Button
                   type="submit"
                   className="w-full gap-2 neon-glow-primary"
-                  disabled={isLoading || !staffEmail.trim() || !staffPassword.trim()}
+                  disabled={isLoading || !staffEmail.trim() || !staffPassword.trim() || accountLocked}
                 >
                   {isLoading ? (
                     <>
                       <Loader className="h-4 w-4 animate-spin" />
                       Signing in...
+                    </>
+                  ) : accountLocked ? (
+                    <>
+                      <AlertTriangle className="h-4 w-4" />
+                      Account Locked ({lockoutTimeRemaining}s)
                     </>
                   ) : (
                     <>
@@ -248,12 +288,6 @@ export default function AdminLogin() {
                   )}
                 </Button>
               </form>
-
-              <div className="mt-4 p-3 bg-secondary/10 border border-secondary/20 rounded-lg">
-                <p className="text-xs text-foreground">
-                  👨‍🍳 Access kitchen and order queues
-                </p>
-              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

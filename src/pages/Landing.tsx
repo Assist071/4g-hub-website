@@ -283,7 +283,7 @@ const Landing = () => {
                   Speak with our team directly
                 </p>
                 <a href="tel:+1234567890" className="font-bold text-primary hover:underline">
-                  +1 (234) 567-8900
+                 +63 (970) 261 -3054
                 </a>
               </CardContent>
             </Card>
