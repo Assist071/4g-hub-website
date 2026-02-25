@@ -22,6 +22,7 @@ export default function Menu() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedCustomizations, setSelectedCustomizations] = useState<string[]>([]);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -33,13 +34,14 @@ export default function Menu() {
     setSelectedItem(item);
     setQuantity(1);
     setSelectedCustomizations([]);
+    setSelectedFlavors([]);
     setNotes('');
     setIsDialogOpen(true);
   };
 
   const handleConfirmAdd = () => {
     if (selectedItem) {
-      addToOrder(selectedItem, quantity, selectedCustomizations, notes);
+      addToOrder(selectedItem, quantity, selectedCustomizations, notes, selectedFlavors);
       setIsDialogOpen(false);
       setSelectedItem(null);
     }
@@ -50,6 +52,14 @@ export default function Menu() {
       setSelectedCustomizations(prev => [...prev, option]);
     } else {
       setSelectedCustomizations(prev => prev.filter(item => item !== option));
+    }
+  };
+
+  const handleFlavorChange = (flavor: string, checked: boolean) => {
+    if (checked) {
+      setSelectedFlavors(prev => [...prev, flavor]);
+    } else {
+      setSelectedFlavors(prev => prev.filter(item => item !== flavor));
     }
   };
 
@@ -254,6 +264,27 @@ export default function Menu() {
                             className="border-primary/50"
                           />
                           <Label htmlFor={option} className="text-sm font-normal cursor-pointer">{option}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedItem.flavors && selectedItem.flavors.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold">Flavors</Label>
+                    <div className="tech-card p-4 border border-primary/30 space-y-3">
+                      {selectedItem.flavors.map((flavor) => (
+                        <div key={flavor} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={flavor}
+                            checked={selectedFlavors.includes(flavor)}
+                            onCheckedChange={(checked) => 
+                              handleFlavorChange(flavor, !!checked)
+                            }
+                            className="border-primary/50"
+                          />
+                          <Label htmlFor={flavor} className="text-sm font-normal cursor-pointer">{flavor}</Label>
                         </div>
                       ))}
                     </div>

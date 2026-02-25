@@ -3,12 +3,16 @@
   import { Button } from '@/components/ui/button';
   import { Badge } from '@/components/ui/badge';
   import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-  import { BarChart3, Users, Database, Download, Upload, Package, ClipboardList, LogOut, ShieldCheck, TrendingUp, Trophy, Wand2, AlertCircle, Clock , Activity } from 'lucide-react';
+  import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+  import { Input } from '@/components/ui/input';
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+  import { BarChart3, Users, Database, Download, Upload, Package, ClipboardList, LogOut, ShieldCheck, TrendingUp, Trophy, Wand2, AlertCircle, Clock , Activity, Plus, Trash2, Eye, EyeOff, Loader } from 'lucide-react';
   import { useOrderStore } from '@/store/orderStore';
   import { useAuthStore } from '@/store/authStore';
   import { AdminMenuManagement } from '@/components/AdminMenuManagement';
   import { MenuInventory } from '@/components/MenuInventory';
   import { useMenuData } from '@/hooks/useMenuData';
+  import { useStaffDatabase } from '@/hooks/useStaffDatabase';
   import MenuManagement from '@/components/admin/MenuManagement';
   import OrderManagement from '@/components/admin/OrderManagement';
 
@@ -54,7 +58,48 @@
     const { orders } = useOrderStore();
     const { logout } = useAuthStore();
     const { menuItems, loading } = useMenuData();
+    const { loadStaffUsers, addStaffUser, deleteStaffUser, loading: staffLoading } = useStaffDatabase();
     const [renderError, setRenderError] = useState<string | null>(null);
+    const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+    const [users, setUsers] = useState<Array<{ id: string; email: string; role: string; password: string }>>([]);
+    const [newUser, setNewUser] = useState({ email: '', role: 'staff', password: '' });
+    const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+      // Load users from Supabase
+      const loadUsers = async () => {
+        const staffUsers = await loadStaffUsers();
+        setUsers(staffUsers);
+      };
+      loadUsers();
+    }, [loadStaffUsers]);
+
+    const addUser = async () => {
+      if (!newUser.email || !newUser.password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      const result = await addStaffUser({
+        email: newUser.email,
+        role: newUser.role as any,
+        password: newUser.password,
+      });
+      if (result) {
+        setUsers([...users, result]);
+        setNewUser({ email: '', role: 'staff', password: '' });
+      } else {
+        alert('Failed to add user. Please try again.');
+      }
+    };
+
+    const deleteUser = async (id: string) => {
+      const success = await deleteStaffUser(id);
+      if (success) {
+        setUsers(users.filter((u) => u.id !== id));
+      } else {
+        alert('Failed to delete user. Please try again.');
+      }
+    };
 
     useEffect(() => {
       // Add error handler for runtime errors
@@ -655,7 +700,7 @@
                         <h4 className="font-semibold text-sm">Staff Access</h4>
                         <p className="text-xs text-muted-foreground mt-1">Manage user permissions</p>
                       </div>
-                      <Button variant="outline" size="sm" className="font-semibold">
+                      <Button onClick={() => setIsUserManagementOpen(true)} variant="outline" size="sm" className="font-semibold">
                         Manage Users
                       </Button>
                     </div>
@@ -803,6 +848,130 @@
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* User Management Modal */}
+        <Dialog open={isUserManagementOpen} onOpenChange={setIsUserManagementOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-primary neon-glow">User Management</DialogTitle>
+              <DialogDescription>
+                Add and manage staff users with different roles and permissions
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Add New User Form */}
+              <div className="p-4 bg-muted/50 border border-primary/20 rounded-lg">
+                <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Add New User
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-2 block">Email</label>
+                    <Input
+                      type="email"
+                      placeholder="user@example.com"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      className="border-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-2 block">Role</label>
+                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                      <SelectTrigger className="border-primary/20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="staff">Staff</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="chef">Chef</SelectItem>
+                        <SelectItem value="cashier">Cashier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-2 block">Password</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                      className="border-primary/20"
+                    />
+                  </div>
+                  <Button onClick={addUser} disabled={staffLoading} className="w-full gap-2 neon-glow-primary">
+                    {staffLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {staffLoading ? 'Adding User...' : 'Add User'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Users List */}
+              <div>
+                <h3 className="font-semibold text-sm mb-3">Existing Users ({users.length})</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {users.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground text-sm">
+                      No users yet. Add one above.
+                    </div>
+                  ) : (
+                    users.map((user) => (
+                      <div
+                        key={user.id}
+                        className="p-3 bg-muted/30 border border-primary/10 rounded-lg hover:border-primary/30 transition-all"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start mb-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground font-semibold mb-1">Email</p>
+                            <p className="text-sm font-medium text-foreground">{user.email}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-semibold mb-1">Role</p>
+                            <Badge className="neon-glow-primary text-xs">{user.role}</Badge>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground font-semibold mb-1">Password</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-mono text-foreground">
+                                {showPassword[user.id] ? user.password : '•'.repeat(user.password.length)}
+                              </span>
+                              <Button
+                                onClick={() =>
+                                  setShowPassword({ ...showPassword, [user.id]: !showPassword[user.id] })
+                                }
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                {showPassword[user.id] ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => deleteUser(user.id)}
+                            variant="destructive"
+                            size="sm"
+                            className="gap-2"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

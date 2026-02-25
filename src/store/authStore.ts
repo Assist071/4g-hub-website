@@ -5,6 +5,8 @@ import type { User } from '@supabase/supabase-js';
 interface AuthStore {
   user: User | null;
   isAdminAuthenticated: boolean;
+  staffRole: string | null;
+  isStaffAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
   
@@ -12,12 +14,16 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  staffLogin: (email: string, password: string) => Promise<boolean>;
+  staffLogout: () => void;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   isAdminAuthenticated: false,
+  staffRole: null,
+  isStaffAuthenticated: false,
   isLoading: false,
   error: null,
 
@@ -51,6 +57,43 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
+  staffLogin: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data, error } = await supabase
+        .from('staff_users')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+
+      if (error || !data) {
+        set({ error: 'Invalid email or password', isLoading: false });
+        return false;
+      }
+
+      set({
+        staffRole: data.role,
+        isStaffAuthenticated: true,
+        isLoading: false,
+      });
+      localStorage.setItem('staffUser', JSON.stringify({ email, role: data.role }));
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Authentication failed';
+      set({ error: message, isLoading: false });
+      return false;
+    }
+  },
+
+  staffLogout: () => {
+    set({
+      staffRole: null,
+      isStaffAuthenticated: false,
+    });
+    localStorage.removeItem('staffUser');
+  },
+
   logout: async () => {
     set({ isLoading: true });
     try {
@@ -70,6 +113,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   checkAuth: async () => {
     set({ isLoading: true });
     try {
+      // Check admin auth
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
@@ -89,6 +133,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           isAdminAuthenticated: false,
           isLoading: false,
         });
+      }
+
+      // Check staff auth from localStorage
+      const staffUser = localStorage.getItem('staffUser');
+      if (staffUser) {
+        const { role } = JSON.parse(staffUser);
+        set({ staffRole: role, isStaffAuthenticated: true });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';

@@ -29,7 +29,7 @@ export function OrderCart() {
     if (newQuantity <= 0) {
       removeFromOrder(item.id);
     } else {
-      updateOrderItem(item.id, newQuantity, item.customizations, item.notes);
+      updateOrderItem(item.id, newQuantity, item.customizations, item.notes, item.flavors);
     }
   };
 
@@ -119,6 +119,15 @@ export function OrderCart() {
                       {item.customizations.slice(0, 2).map((custom, index) => (
                         <Badge key={index} variant="outline" className="text-xs border-primary/30">
                           {custom}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {item.flavors && item.flavors.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {item.flavors.map((flavor, index) => (
+                        <Badge key={index} variant="outline" className="text-xs border-primary/30 bg-primary/5">
+                           {flavor}
                         </Badge>
                       ))}
                     </div>

@@ -18,9 +18,9 @@ interface OrderStore {
   _restoreProductQuantity: (menuItemId: string, quantity: number) => Promise<void>;
   
   // Order Actions
-  addToOrder: (item: MenuItem, quantity: number, customizations: string[], notes?: string) => void;
+  addToOrder: (item: MenuItem, quantity: number, customizations: string[], notes?: string, flavors?: string[]) => void;
   removeFromOrder: (itemId: string) => void;
-  updateOrderItem: (itemId: string, quantity: number, customizations: string[], notes?: string) => void;
+  updateOrderItem: (itemId: string, quantity: number, customizations: string[], notes?: string, flavors?: string[]) => void;
   clearCurrentOrder: () => void;
   submitOrder: (customerName?: string, terminal?: string) => Promise<Order>;
   updateOrder: (order: Order) => void;
@@ -117,13 +117,14 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
   },
 
   // Order Actions
-  addToOrder: (item, quantity, customizations, notes) => {
+  addToOrder: (item, quantity, customizations, notes, flavors) => {
     const newItem: OrderItem = {
       id: `${item.id}-${Date.now()}`,
       name: item.name,
       menuItem: item,
       quantity,
       customizations,
+      flavors,
       notes
     };
     
@@ -161,7 +162,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
     });
   },
 
-  updateOrderItem: (itemId, quantity, customizations, notes) => {
+  updateOrderItem: (itemId, quantity, customizations, notes, flavors) => {
     const state = get();
     const currentItem = state.currentOrder.find(item => item.id === itemId);
     const tracker = state.cartItemQuantityTracker[itemId];
@@ -184,7 +185,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
     set(state => ({
       currentOrder: state.currentOrder.map(item => 
         item.id === itemId 
-          ? { ...item, quantity, customizations, notes }
+          ? { ...item, quantity, customizations, notes, flavors }
           : item
       ),
       cartItemQuantityTracker: {

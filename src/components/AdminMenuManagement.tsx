@@ -38,7 +38,9 @@ export function AdminMenuManagement() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [newAddOn, setNewAddOn] = useState('');
+  const [newFlavor, setNewFlavor] = useState('');
   const [hoveredAddOnsId, setHoveredAddOnsId] = useState<string | null>(null);
+  const [hoveredFlavorId, setHoveredFlavorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'menu' | 'feedback'>('menu');
 
   // Form state for menu item
@@ -50,6 +52,7 @@ export function AdminMenuManagement() {
     available: true,
     image: '',
     customization: [],
+    flavors: [],
   });
 
   // Form state for category
@@ -69,8 +72,10 @@ export function AdminMenuManagement() {
       available: true,
       image: '',
       customization: [],
+      flavors: [],
     });
     setNewAddOn('');
+    setNewFlavor('');
     clearImageUpload();
     setIsItemDialogOpen(true);
   };
@@ -79,6 +84,7 @@ export function AdminMenuManagement() {
     setSelectedItem(item);
     setItemFormData(item);
     setNewAddOn('');
+    setNewFlavor('');
     setIsItemDialogOpen(true);
   };
 
@@ -174,6 +180,23 @@ export function AdminMenuManagement() {
     setItemFormData({
       ...itemFormData,
       customization: (itemFormData.customization || []).filter((_, i) => i !== index)
+    });
+  };
+
+  const handleAddFlavor = () => {
+    if (newFlavor.trim()) {
+      setItemFormData({
+        ...itemFormData,
+        flavors: [...(itemFormData.flavors || []), newFlavor.trim()]
+      });
+      setNewFlavor('');
+    }
+  };
+
+  const handleRemoveFlavor = (index: number) => {
+    setItemFormData({
+      ...itemFormData,
+      flavors: (itemFormData.flavors || []).filter((_, i) => i !== index)
     });
   };
 
@@ -323,7 +346,11 @@ export function AdminMenuManagement() {
                     <Label className="font-ethnocentric text-sm font-semibold">Item Name *</Label>
                     <Input
                       value={itemFormData.name}
-                      onChange={(e) => setItemFormData({ ...itemFormData, name: e.target.value })}
+                      onChange={(e) => {
+                        // Remove numbers from item name
+                        const value = e.target.value.replace(/[0-9]/g, '');
+                        setItemFormData({ ...itemFormData, name: value });
+                      }}
                       placeholder="e.g., Fried Chicken"
                       className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 mt-2"
                     />
@@ -407,7 +434,12 @@ export function AdminMenuManagement() {
                         step="0.01"
                         min="0"
                         value={itemFormData.price || ''}
-                        onChange={(e) => setItemFormData({ ...itemFormData, price: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          let price = parseFloat(e.target.value) || 0;
+                          // Ensure price is not negative
+                          if (price < 0) price = 0;
+                          setItemFormData({ ...itemFormData, price });
+                        }}
                         placeholder="0.00"
                         className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 mt-2"
                       />
@@ -503,6 +535,54 @@ export function AdminMenuManagement() {
                     )}
                   </div>
                 </div>
+
+                {/* Flavors Section */}
+                <div className="space-y-3 pb-4 border-b border-primary/10">
+                  <h3 className="font-ethnocentric font-semibold text-primary text-sm">Flavors</h3>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        value={newFlavor}
+                        onChange={(e) => setNewFlavor(e.target.value)}
+                        placeholder="e.g., Vanilla, Chocolate, Strawberry"
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddFlavor()}
+                        className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddFlavor}
+                        variant="secondary"
+                        size="sm"
+                        className="bg-secondary/20 hover:bg-secondary/40 text-secondary-foreground transition-colors font-semibold"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+                    {(itemFormData.flavors && itemFormData.flavors.length > 0) && (
+                      <div className="space-y-2 p-3 bg-secondary/5 rounded-lg border border-secondary/20">
+                        <p className="text-xs text-muted-foreground font-ethnocentric font-semibold">Added flavors:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {itemFormData.flavors.map((flavor, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center gap-2 bg-secondary/30 text-foreground px-3 py-1.5 rounded-full text-sm border border-secondary/50 hover:bg-secondary/40 transition-colors"
+                            >
+                              <span className="font-ethnocentric">{flavor}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFlavor(index)}
+                                className="ml-1 hover:text-secondary transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -578,26 +658,30 @@ export function AdminMenuManagement() {
                   </div>
                   {item.customization && item.customization.length > 0 ? (
                     <div className="w-full border-t border-primary/10 mt-3 h-10 flex items-center px-3">
-                      <Popover open={hoveredAddOnsId === item.id} onOpenChange={(open) => {
+                      <Popover open={hoveredAddOnsId === `${item.id}-addon`} onOpenChange={(open) => {
                         if (!open) setHoveredAddOnsId(null);
                       }}>
                         <PopoverTrigger asChild>
                           <button 
-                            onMouseEnter={() => setHoveredAddOnsId(item.id)}
+                            onMouseEnter={() => setHoveredAddOnsId(`${item.id}-addon`)}
                             onMouseLeave={() => setHoveredAddOnsId(null)}
                             className="text-xs bg-accent/30 hover:bg-accent/50 text-accent-foreground px-4 py-1.5 rounded border border-accent/50 font-ethnocentric font-semibold transition-colors cursor-default"
                           >
                             ADD ONS ({item.customization.length})
                           </button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto tech-card border-primary/30 p-3">
-                          <div className="space-y-2">
-                            <p className="text-xs font-ethnocentric font-semibold text-primary mb-2">Available Add-ons:</p>
+                        <PopoverContent className="w-auto tech-card border-primary/30 p-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 border-b border-primary/20 pb-2">
+                              <span className="text-lg">🎯</span>
+                              <p className="text-xs font-ethnocentric font-semibold text-primary">CUSTOMIZATIONS (ADD-ONS)</p>
+                            </div>
                             <div className="space-y-1.5">
                               {item.customization.map((addon, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-sm bg-primary/10 px-3 py-2 rounded border border-primary/20">
-                                  <span className="text-primary">✓</span>
+                                <div key={idx} className="flex items-center gap-2 text-sm bg-primary/10 px-3 py-2 rounded border border-primary/20 hover:bg-primary/20 transition-colors">
+                                  <span className="text-primary font-bold">✓</span>
                                   <span className="font-ethnocentric">{addon}</span>
+
                                 </div>
                               ))}
                             </div>
@@ -607,15 +691,48 @@ export function AdminMenuManagement() {
                     </div>
                   ) : (
                     <div className="w-full border-t border-primary/10 mt-3 h-10 flex items-center px-3">
-                      <span className={`text-xs font-ethnocentric ${
-                        item.customization.length > 0 
-                          ? 'text-green-600 font-semibold' 
-                          : 'text-muted-foreground/50'
-                      }`}>
-                        {item.customization.length > 0 ? `${item.customization.length} add-on${item.customization.length > 1 ? 's' : ''}` : 'No add-ons'}
-                      </span>
+                      <span className="text-xs font-ethnocentric text-muted-foreground/50">No add-ons</span>
                     </div>
                   )}
+
+                  {item.flavors && item.flavors.length > 0 ? (
+                    <div className="w-full border-t border-primary/10 mt-2 h-10 flex items-center px-3">
+                      <Popover open={hoveredFlavorId === `${item.id}-flavor`} onOpenChange={(open) => {
+                        if (!open) setHoveredFlavorId(null);
+                      }}>
+                        <PopoverTrigger asChild>
+                          <button 
+                            onMouseEnter={() => setHoveredFlavorId(`${item.id}-flavor`)}
+                            onMouseLeave={() => setHoveredFlavorId(null)}
+                            className="text-xs bg-accent/30 hover:bg-accent/50 text-accent-foreground px-4 py-1.5 rounded border border-accent/50 font-ethnocentric font-semibold transition-colors cursor-default"
+                          >
+                            FLAVORS ({item.flavors.length})
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto tech-card border-accent/30 p-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 border-b border-accent/20 pb-2">
+                              <span className="text-lg">🍨</span>
+                              <p className="text-xs font-ethnocentric font-semibold text-primary">FLAVORS</p>
+                            </div>
+                            <div className="space-y-1.5">
+                              {item.flavors.map((flavor, idx) => (
+                                <div key={idx} className="flex items-center gap-2 text-sm bg-accent/10 px-3 py-2 rounded border border-accent/20 hover:bg-accent/20 transition-colors">
+                                  <span className="text-accent font-bold">✓</span>
+                                  <span className="font-ethnocentric">{flavor}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  ) : (
+                    <div className="w-full border-t border-primary/10 mt-2 h-10 flex items-center px-3">
+                      <span className="text-xs font-ethnocentric text-muted-foreground/50">No flavors</span>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 pt-3 border-t border-primary/10 mt-3">
                     <span className={`text-xs px-2 py-1 rounded border font-ethnocentric ${item.available ? 'bg-green-500/20 text-green-600 border-green-500/30' : 'bg-primary/20 text-primary border-primary/30'}`}>
                       {item.available ? 'Available' : 'Unavailable'}

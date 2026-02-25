@@ -15,6 +15,7 @@ import Queue from "./pages/Queue";
 import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import AdminLogin from "@/components/AdminLogin";
+import StaffLogin from "./pages/StaffLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/queue" element={<Queue />} />
             <Route path="/kitchen" element={<Kitchen />} />
             <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/staff-login" element={<StaffLogin />} />
             <Route path="/admin" element={<ProtectedRoute element={<Admin />} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

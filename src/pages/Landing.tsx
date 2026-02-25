@@ -81,6 +81,17 @@ const Landing = () => {
         >
           Contact
         </Button>
+        <div className="h-6 w-px bg-border" />
+        <Button
+          asChild
+          size="sm"
+          variant="default"
+          className="text-xs font-ethnocentric neon-glow-primary"
+        >
+          <Link to="/admin-login">
+            Login
+          </Link>
+        </Button>
       </div>
 
       {/* Hero Section */}

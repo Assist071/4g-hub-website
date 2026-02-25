@@ -9,13 +9,13 @@ import logo from '../../image logo/4ghubv11.png';
 export function Navigation() {
   const location = useLocation();
   const { orders, getPendingOrders } = useOrderStore();
-  const { isAdminAuthenticated, logout } = useAuthStore();
+  const { isAdminAuthenticated, logout, isStaffAuthenticated, staffRole, staffLogout } = useAuthStore();
   const navigate = useNavigate();
   
   const pendingCount = getPendingOrders().length;
   const preparingCount = orders.filter(o => o.status === 'preparing').length;
   
-  // Admin navigation items
+  // Admin navigation items (full access)
   const adminNavItems = [
     {
       to: '/queue',
@@ -43,10 +43,36 @@ export function Navigation() {
     }
   ];
 
-  const navItems = isAdminAuthenticated ? adminNavItems : [];
+  // Staff navigation items (limited access)
+  const staffNavItems = [
+    {
+      to: '/queue',
+      icon: Monitor,
+      label: 'Order Queue',
+      badge: pendingCount > 0 ? pendingCount : null
+    },
+    {
+      to: '/kitchen',
+      icon: ChefHat,
+      label: 'Kitchen',
+      badge: preparingCount > 0 ? preparingCount : null
+    },
+    {
+      to: '/dashboard',
+      icon: BarChart3,
+      label: 'Dashboard',
+      badge: null
+    }
+  ];
+
+  const navItems = isAdminAuthenticated ? adminNavItems : (isStaffAuthenticated ? staffNavItems : []);
 
   const handleLogout = async () => {
-    await logout();
+    if (isAdminAuthenticated) {
+      await logout();
+    } else if (isStaffAuthenticated) {
+      staffLogout();
+    }
     navigate('/');
   };
 
@@ -61,16 +87,6 @@ export function Navigation() {
           
           {/* Navigation Items */}
           <div className="flex items-center gap-1">
-            {/*
-            {!isAdminAuthenticated && (
-              <Button asChild variant={location.pathname === '/admin-login' ? 'default' : 'outline'} className="gap-2">
-                <Link to="/admin-login">
-                  <UserCog className="h-4 w-4" />
-                  <span className="hidden sm:inline text-sm">Admin Login</span>
-                </Link>
-              </Button>
-            )}
-            */}
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to;
@@ -98,7 +114,19 @@ export function Navigation() {
               );
             })}
             
-
+            {(isAdminAuthenticated || isStaffAuthenticated) && (
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+                {isStaffAuthenticated && (
+                  <Badge variant="outline" className="text-xs">
+                    {staffRole?.toUpperCase()}
+                  </Badge>
+                )}
+                <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline text-sm">Logout</span>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

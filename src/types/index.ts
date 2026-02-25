@@ -7,6 +7,7 @@ export interface MenuItem {
   image?: string;
   available: boolean;
   customization?: string[];
+  flavors?: string[];
   quantity?: number;
 }
 
@@ -16,6 +17,7 @@ export interface OrderItem {
   menuItem: MenuItem;
   quantity: number;
   customizations: string[];
+  flavors?: string[];
   notes?: string;
 }
 
@@ -46,6 +48,14 @@ export interface Feedback {
   comment: string;
   createdAt: Date;
   status: 'new' | 'reviewed' | 'archived';
+}
+
+export interface StaffUser {
+  id: string;
+  email: string;
+  role: 'staff' | 'manager' | 'chef' | 'cashier' | 'admin';
+  password: string;
+  createdAt: Date;
 }
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';

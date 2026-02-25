@@ -20,9 +20,14 @@ CREATE TABLE IF NOT EXISTS order_items (
   price DECIMAL(10, 2) NOT NULL,
   quantity INTEGER NOT NULL,
   customizations TEXT[] DEFAULT '{}',
+  flavors TEXT[] DEFAULT '{}',
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila'
 );
+
+-- Add flavors column to existing order_items table if it doesn't exist
+ALTER TABLE order_items 
+ADD COLUMN IF NOT EXISTS flavors TEXT[] DEFAULT '{}';
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
