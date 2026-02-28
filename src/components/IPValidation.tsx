@@ -110,7 +110,7 @@ export function IPValidation() {
                   // Wait a moment for PC status to update
                   setTimeout(() => {
                     console.log('🚀 [REDIRECT] NOW redirecting to landing page!');
-                    window.location.href = '/validate';
+                    window.location.href = '/landing';
                   }, 1500);
                 } else {
                   console.log('⏳ [SUBSCRIPTION] Not ready yet. Status:', ipRecord?.status, 'PC ID:', ipRecord?.assigned_pc_id);
@@ -166,7 +166,7 @@ export function IPValidation() {
               // Auto-redirect to landing
               setTimeout(() => {
                 console.log('🚀 [REDIRECT] Redirecting to landing page');
-                window.location.href = '/validate';
+                window.location.href = '/landing';
               }, 1000);
               unsubscribeSession?.();
             } else if (updatedSession.status === 'rejected') {

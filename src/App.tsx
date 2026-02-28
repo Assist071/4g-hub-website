@@ -21,7 +21,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+  const App = () => {
   const location = useLocation();
   const { checkAuth } = useAuthStore();
   const { loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase } = useOrderStore();
@@ -45,8 +45,8 @@ const App = () => {
         {showNavigation && <Navigation />}
         <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<IPValidation />} /> 
-            <Route path="/validate" element={<Landing />} />
+            <Route path="/" element={<IPValidation />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/staff-login" element={<StaffLogin />} />
