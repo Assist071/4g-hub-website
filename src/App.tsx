@@ -16,12 +16,13 @@ import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import AdminLogin from "@/components/AdminLogin";
 import StaffLogin from "./pages/StaffLogin";
-import { IPValidation } from "@/components/IPValidation";
+import { IPGuard } from "@/components/IPGuard";
 import NotFound from "./pages/NotFound";
+import { IPValidation } from "./components/IPValidation";
 
 const queryClient = new QueryClient();
 
-  const App = () => {
+const App = () => {
   const location = useLocation();
   const { checkAuth } = useAuthStore();
   const { loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase } = useOrderStore();
@@ -35,7 +36,7 @@ const queryClient = new QueryClient();
   }, [checkAuth, loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase]);
 
   // Hide Navigation on validation page
-  const showNavigation = location.pathname !== '/';
+  const showNavigation = location.pathname !== '/validate';
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -44,23 +45,23 @@ const queryClient = new QueryClient();
         <Sonner />
         {showNavigation && <Navigation />}
         <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<IPValidation />} />
-            <Route path="/landing" element={<Landing />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/staff-login" element={<StaffLogin />} />
-            
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute element={<Index />} />} />
-            <Route path="/queue" element={<ProtectedRoute element={<Queue />} />} />
-            <Route path="/kitchen" element={<ProtectedRoute element={<Kitchen />} />} />
-            <Route path="/admin" element={<ProtectedRoute element={<Admin />} />} />
-            
-            {/* Catch-all for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
+          {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/validate" element={<IPValidation />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/staff-login" element={<StaffLogin />} />
+
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute element={<Index />} />} />
+          <Route path="/queue" element={<ProtectedRoute element={<Queue />} />} />
+          <Route path="/kitchen" element={<ProtectedRoute element={<Kitchen />} />} />
+          <Route path="/admin" element={<ProtectedRoute element={<Admin />} />} />
+
+          {/* Catch-all for 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

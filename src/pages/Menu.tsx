@@ -28,6 +28,11 @@ export default function Menu() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const handleBackToLanding = () => {
+    // Instant redirect to home - skip validation completely
+    window.location.href = '/';
+  };
+
   const filteredItems = selectedCategory === 'all' 
     ? menuItems 
     : menuItems.filter(item => item.category === selectedCategory);
@@ -107,16 +112,14 @@ export default function Menu() {
       <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl -z-10" />
       
       {/* Header Navigation */}
-        <div className="container mx-auto px-4 py-6 md:py-8 flex items-center justify-between">
-          <Button asChild variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary neon-glow">
-            <Link to="/landing">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Link>
-          </Button>
-          <h1 className="text-2xl md:text-3xl font-bold cyber-text neon-glow">Select Your Order</h1>
-          <div className="w-16" />
-        </div>
+      <div className="container mx-auto px-4 py-6 md:py-8 flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary neon-glow" onClick={handleBackToLanding}>
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <h1 className="text-2xl md:text-3xl font-bold cyber-text neon-glow">Select Your Order</h1>
+        <div className="w-16" />
+      </div>
 
       {/* Success Notification */}
       {showSuccess && (
