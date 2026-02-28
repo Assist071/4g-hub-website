@@ -16,6 +16,57 @@ const TIME_WINDOW = 15 * 60 * 1000; // 15 minutes
 class RateLimiter {
   private attempts: LoginAttempt[] = [];
   private lockedAccounts: Map<string, number> = new Map();
+  private storageKey: string;
+
+  constructor(storageKey: string = 'login_lockouts') {
+    this.storageKey = storageKey;
+    this.loadLockoutsFromStorage();
+  }
+
+  /**
+   * Load lockouts from localStorage
+   */
+  private loadLockoutsFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const data = JSON.parse(stored);
+        this.lockedAccounts.clear();
+        
+        const now = Date.now();
+        // Only restore lockouts that haven't expired
+        for (const [email, lockTime] of Object.entries(data)) {
+          const timestamp = lockTime as number;
+          if (now - timestamp < LOCKOUT_DURATION) {
+            this.lockedAccounts.set(email, timestamp);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading lockouts from storage:', error);
+    }
+  }
+
+  /**
+   * Save lockouts to localStorage
+   */
+  private saveLockoutsToStorage(): void {
+    try {
+      const data: Record<string, number> = {};
+      const now = Date.now();
+      
+      // Only save active lockouts
+      for (const [email, lockTime] of this.lockedAccounts.entries()) {
+        if (now - lockTime < LOCKOUT_DURATION) {
+          data[email] = lockTime;
+        }
+      }
+      
+      localStorage.setItem(this.storageKey, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving lockouts to storage:', error);
+    }
+  }
 
   /**
    * Check if an email is locked due to too many failed attempts
@@ -27,6 +78,7 @@ class RateLimiter {
     const now = Date.now();
     if (now - lockTime > LOCKOUT_DURATION) {
       this.lockedAccounts.delete(email);
+      this.saveLockoutsToStorage();
       return false;
     }
 
@@ -94,6 +146,17 @@ class RateLimiter {
    */
   lockAccount(email: string): void {
     this.lockedAccounts.set(email, Date.now());
+    this.saveLockoutsToStorage();
+  }
+
+  /**
+   * Clear lockout for specific email
+   */
+  clearAccountLockout(email: string): void {
+    this.lockedAccounts.delete(email);
+    // Also remove failed attempts for this email
+    this.attempts = this.attempts.filter(attempt => attempt.email !== email);
+    this.saveLockoutsToStorage();
   }
 
   /**
@@ -102,8 +165,13 @@ class RateLimiter {
   clear(): void {
     this.attempts = [];
     this.lockedAccounts.clear();
+    try {
+      localStorage.removeItem(this.storageKey);
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+    }
   }
 }
 
-export const adminRateLimiter = new RateLimiter();
-export const staffRateLimiter = new RateLimiter();
+export const adminRateLimiter = new RateLimiter('admin_login_lockouts');
+export const staffRateLimiter = new RateLimiter('staff_login_lockouts');

@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import FoodShowcase from '@/components/FoodShowcase';
 import { CustomerFeedback } from '@/components/CustomerFeedback';
+import { useComputerShopDatabase } from '@/hooks/useComputerShopDatabase';
 import {
   Utensils,
   Monitor,
@@ -28,7 +28,42 @@ import {
 } from 'lucide-react';
 
 const Landing = () => {
+  const navigate = useNavigate();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { getDetectedIPs } = useComputerShopDatabase();
+
+  // Check IP status on page load
+  useEffect(() => {
+    const checkIPStatus = async () => {
+      try {
+        // Detect client IP
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        const clientIP = data.ip;
+
+        console.log('🌐 Client IP:', clientIP);
+
+        // Check if IP exists in database
+        const detectedIPs = await getDetectedIPs();
+        const ipRecord = detectedIPs.find((ip) => ip.ip_address === clientIP);
+
+        console.log('🔍 IP found in database:', ipRecord);
+
+        // If IP not registered/approved, redirect to validate
+        if (!ipRecord || ipRecord.status !== 'registered') {
+          console.log('⚠️ IP not approved, redirecting to /validate');
+          navigate('/validate');
+        }
+      } catch (err) {
+        console.error('Error checking IP status:', err);
+        // On error, redirect to validate to be safe
+        navigate('/validate');
+      }
+    };
+
+    checkIPStatus();
+  }, [navigate, getDetectedIPs]);
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -46,7 +81,6 @@ const Landing = () => {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="text-xs font-ethnocentric"
         >
-       
           Home
         </Button>
         <Button
@@ -80,9 +114,7 @@ const Landing = () => {
           variant="default"
           className="text-xs font-ethnocentric neon-glow-primary"
         >
-          <Link to="/admin-login">
-            Login
-          </Link>
+          <Link to="/admin-login">Login</Link>
         </Button>
       </div>
 
@@ -91,61 +123,85 @@ const Landing = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl -z-10" />
+        
         <div className="container mx-auto px-4 py-32 md:py-40 lg:py-38">
           <div className="grid gap-16 md:grid-cols-2 items-center">
             <div className="space-y-10 md:space-y-12">
               <h1 className="text-5xl md:text-4xl font-extrabold leading-tight neon-glow cyber-text">
                 Enjoy Your Cafe With Gaming in 4G HUB
               </h1>
+              
               <p className="text-muted-foreground text-lg leading-relaxed">
-                A modern ordering and queue management system for cafes and quick-service restaurants. Take orders, track preparation, and keep customers informed in real-time.
+                A modern ordering and queue management system for cafes and quick-service 
+                restaurants. Take orders, track preparation, and keep customers informed in real-time.
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-6">
-                <Button asChild size="lg" className="gap-2 font-bold neon-glow-primary hover:shadow-lg transition-all duration-300">
+                <Button 
+                  asChild 
+                  size="lg" 
+                  className="gap-2 font-bold neon-glow-primary hover:shadow-lg transition-all duration-300"
+                >
                   <Link to="/menu">
                     Start Ordering <ShoppingCart className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
+              
               <div className="flex items-center gap-12 text-sm text-muted-foreground pt-8">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary neon-glow" /> Secure & Reliable
+                  <ShieldCheck className="h-4 w-4 text-primary neon-glow" />
+                  Secure & Reliable
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary neon-glow" /> Real-time Updates
+                  <Clock className="h-4 w-4 text-primary neon-glow" />
+                  Real-time Updates
                 </div>
               </div>
             </div>
+            
             <div className="relative">
               <div className="absolute -inset-10 bg-primary/10 blur-3xl rounded-full animate-pulse" />
+              
               <div className="relative grid grid-cols-2 gap-8 md:gap-10">
                 <div className="tech-card corner-bracket edge-pulse p-4">
                   <div className="p-3 rounded-lg bg-primary text-primary-foreground w-fit mb-3">
                     <Gamepad2 className="h-6 w-6" />
                   </div>
                   <div className="font-bold font-ethnocentric">Game. Order. Chill.</div>
-                  <p className="text-sm text-muted-foreground">Order while gaming, pick up when ready, zero interruptions.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Order while gaming, pick up when ready, zero interruptions.
+                  </p>
                 </div>
+                
                 <div className="tech-card corner-bracket edge-pulse p-4 delay-100">
                   <div className="p-3 rounded-lg bg-secondary text-secondary-foreground w-fit mb-3">
                     <Zap className="h-6 w-6" />
                   </div>
                   <div className="font-bold font-ethnocentric">No Waiting. No Hassle.</div>
-                  <p className="text-sm text-muted-foreground">Skip the line, instant ordering, real-time status tracking.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Skip the line, instant ordering, real-time status tracking.
+                  </p>
                 </div>
+                
                 <div className="tech-card corner-bracket edge-pulse p-4 delay-200">
                   <div className="p-3 rounded-lg bg-accent text-accent-foreground w-fit mb-3">
                     <Utensils className="h-6 w-6" />
                   </div>
                   <div className="font-bold font-ethnocentric">Customize Your Cravings</div>
-                  <p className="text-sm text-muted-foreground">Build your perfect meal, endless add-ons, exactly how you want it.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Build your perfect meal, endless add-ons, exactly how you want it.
+                  </p>
                 </div>
+                
                 <div className="tech-card corner-bracket edge-pulse p-4 delay-300">
                   <div className="p-3 rounded-lg bg-muted w-fit mb-3">
                     <Bell className="h-6 w-6 text-foreground" />
                   </div>
                   <div className="font-bold font-ethnocentric">Fast & Smooth Experience</div>
-                  <p className="text-sm text-muted-foreground">Never miss your order ready.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Never miss your order ready.
+                  </p>
                 </div>
               </div>
             </div>
@@ -154,9 +210,12 @@ const Landing = () => {
       </section>
 
       {/* Food Showcase Section */}
-      <div id="food-showcase">
+<div id="food-showcase" className="pt-20 md:pt-32">
         <FoodShowcase />
       </div>
+
+      {/* Section Spacer */}
+      <div className="py-16 md:py-20" />
 
       {/* Why Choose Section */}
       <section id="why-choose" className="py-20 md:py-28">
@@ -169,6 +228,7 @@ const Landing = () => {
               Experience the perfect blend of gaming, dining, and convenience in one vibrant space
             </p>
           </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="tech-card corner-bracket border-primary/20 hover:border-primary/50 transition-colors">
               <CardHeader>
@@ -256,6 +316,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
       {/* Get in Touch Section */}
       <section id="get-touch" className="py-20 md:py-28">
         <div className="container mx-auto px-4">
@@ -282,8 +343,11 @@ const Landing = () => {
                 <p className="text-muted-foreground mb-4">
                   Speak with our team directly
                 </p>
-                <a href="tel:+1234567890" className="font-bold text-primary hover:underline">
-                 +63 (970) 261 -3054
+                <a 
+                  href="tel:+639702613054" 
+                  className="font-bold text-primary hover:underline"
+                >
+                  +63 (970) 261-3054
                 </a>
               </CardContent>
             </Card>
@@ -301,7 +365,10 @@ const Landing = () => {
                 <p className="text-muted-foreground mb-4">
                   Send us your inquiries
                 </p>
-                <a href="mailto:hello@4ghubcafe.com" className="font-bold text-primary hover:underline">
+                <a 
+                  href="mailto:hello@4ghubcafe.com" 
+                  className="font-bold text-primary hover:underline"
+                >
                   hello@4ghubcafe.com
                 </a>
               </CardContent>
@@ -320,7 +387,11 @@ const Landing = () => {
                 <p className="text-muted-foreground mb-4">
                   Chat with us and share your feedback
                 </p>
-                <Button variant="outline" className="gap-2" onClick={() => setIsFeedbackOpen(true)}>
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={() => setIsFeedbackOpen(true)}
+                >
                   Start Chat <ArrowRight className="h-4 w-4" />
                 </Button>
               </CardContent>
@@ -328,7 +399,9 @@ const Landing = () => {
           </div>
 
           <div className="tech-card corner-bracket bg-primary/5 border-primary/20 p-8 md:p-12 text-center rounded-lg">
-            <h3 className="text-2xl font-bold mb-4 font-ethnocentric">Join Our Community</h3>
+            <h3 className="text-2xl font-bold mb-4 font-ethnocentric">
+              Join Our Community
+            </h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               Follow us on social media for exclusive updates, special offers, and gaming tournaments
             </p>

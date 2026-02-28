@@ -21,7 +21,7 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [selectedCustomizations, setSelectedCustomizations] = useState<string[]>([]);
+  const [selectedCustomizations, setSelectedCustomizations] = useState<{ [key: string]: number }>({});
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function Menu() {
   const handleAddToOrder = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
-    setSelectedCustomizations([]);
+    setSelectedCustomizations({});
     setSelectedFlavors([]);
     setNotes('');
     setIsDialogOpen(true);
@@ -43,30 +43,42 @@ export default function Menu() {
 
   const handleConfirmAdd = () => {
     if (selectedItem) {
-      addToOrder(selectedItem, quantity, selectedCustomizations, notes, selectedFlavors);
+      // Convert customization quantities back to array format
+      const customizationStrings = Object.entries(selectedCustomizations)
+        .filter(([_, qty]) => qty > 0)
+        .map(([key, qty]) => {
+          const option = selectedItem.customization?.find(opt => {
+            const name = typeof opt === 'string' ? opt : opt.name;
+            return name === key;
+          });
+          if (typeof option === 'string') {
+            return JSON.stringify({ name: option, price: 0, quantity: qty });
+          } else if (option) {
+            return JSON.stringify({ ...option, quantity: qty });
+          }
+          return JSON.stringify({ name: key, price: 0, quantity: qty });
+        });
+      
+      addToOrder(selectedItem, quantity, customizationStrings, notes, selectedFlavors);
       setIsDialogOpen(false);
       setSelectedItem(null);
     }
   };
 
-  const handleCustomizationChange = (option: any, checked: boolean) => {
-    if (checked) {
-      // Store the full option object as JSON string
-      const optionString = typeof option === 'string' ? JSON.stringify({ name: option, price: 0 }) : JSON.stringify(option);
-      setSelectedCustomizations(prev => [...prev, optionString]);
+  const handleCustomizationChange = (option: any, quantity: number) => {
+    const optionName = typeof option === 'string' ? option : option.name;
+    if (quantity > 0) {
+      setSelectedCustomizations(prev => {
+        const updated = { ...prev };
+        updated[optionName] = quantity;
+        return updated;
+      });
     } else {
-      // Remove based on matching JSON
-      setSelectedCustomizations(prev => 
-        prev.filter(item => {
-          try {
-            const parsed = JSON.parse(item);
-            const optionName = typeof option === 'string' ? option : option.name;
-            return parsed.name !== optionName;
-          } catch {
-            return item !== option;
-          }
-        })
-      );
+      setSelectedCustomizations(prev => {
+        const updated = { ...prev };
+        delete updated[optionName];
+        return updated;
+      });
     }
   };
 
@@ -289,35 +301,58 @@ export default function Menu() {
                     <div className="tech-card p-4 border border-primary/30 space-y-3">
                       {selectedItem.customization.map((option) => {
                         const optionObj = typeof option === 'string' ? { name: option, price: 0 } : option;
-                        const optionKey = typeof option === 'string' ? option : option.name;
-                        const isSelected = selectedCustomizations.some(item => {
-                          try {
-                            const parsed = JSON.parse(item);
-                            return parsed.name === optionKey;
-                          } catch {
-                            return false;
-                          }
-                        });
+                        const optionKey = optionObj.name;
+                        const currentQty = selectedCustomizations[optionKey] || 0;
+                        const isSelected = currentQty > 0;
                         return (
                         <div key={optionKey} className="flex items-center justify-between w-full">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center gap-3 flex-1">
                             <Checkbox
-                              id={optionKey}
+                              id={`custom-${optionKey}`}
                               checked={isSelected}
-                              onCheckedChange={(checked) => 
-                                handleCustomizationChange(optionObj, !!checked)
-                              }
+                              onCheckedChange={(checked) => {
+                                handleCustomizationChange(optionObj, checked ? 1 : 0);
+                              }}
                               className="border-primary/50"
                             />
-                            <Label htmlFor={optionKey} className="text-sm font-normal cursor-pointer">
-                              {optionObj.name}
-                            </Label>
+                            <div>
+                              <Label htmlFor={`custom-${optionKey}`} className="text-sm font-normal cursor-pointer">
+                                {optionObj.name}
+                              </Label>
+                              {optionObj.price > 0 && (
+                                <span className="text-xs text-primary font-semibold ml-2">
+                                  +₱{optionObj.price.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {optionObj.price > 0 && (
-                            <span className="text-primary font-semibold">
-                              +₱{optionObj.price.toFixed(2)}
-                            </span>
+                          {isSelected && (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCustomizationChange(optionObj, Math.max(0, currentQty - 1))}
+                                className="border-primary/50 hover:border-primary w-8 h-8 p-0"
+                              >
+                                −
+                              </Button>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={currentQty}
+                                onChange={(e) => handleCustomizationChange(optionObj, Math.max(0, parseInt(e.target.value) || 0))}
+                                className="text-center border-primary/50 w-12 h-8"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCustomizationChange(optionObj, currentQty + 1)}
+                                className="border-primary/50 hover:border-primary w-8 h-8 p-0"
+                              >
+                                +
+                              </Button>
+                            </div>
                           )}
                         </div>
                         );
@@ -366,14 +401,14 @@ export default function Menu() {
                       <span className="font-semibold">₱{(selectedItem.price * quantity).toFixed(2)}</span>
                     </div>
                     {(() => {
-                      const addonsTotal = selectedCustomizations.reduce((total, custom) => {
-                        try {
-                          const parsed = JSON.parse(custom);
-                          return total + (parsed.price || 0);
-                        } catch {
-                          return total;
-                        }
-                      }, 0) * quantity;
+                      const addonsTotal = Object.entries(selectedCustomizations).reduce((total, [optionName, qty]) => {
+                        const option = selectedItem.customization?.find(opt => {
+                          const name = typeof opt === 'string' ? opt : opt.name;
+                          return name === optionName;
+                        });
+                        const price = typeof option === 'string' ? 0 : (option?.price || 0);
+                        return total + (price * qty);
+                      }, 0);
                       
                       return addonsTotal > 0 && (
                         <div className="flex justify-between items-center text-sm">
@@ -387,14 +422,14 @@ export default function Menu() {
                       <div className="text-2xl font-bold text-primary neon-glow">
                         ₱{(() => {
                           const baseTotal = selectedItem.price * quantity;
-                          const addonsTotal = selectedCustomizations.reduce((total, custom) => {
-                            try {
-                              const parsed = JSON.parse(custom);
-                              return total + (parsed.price || 0);
-                            } catch {
-                              return total;
-                            }
-                          }, 0) * quantity;
+                          const addonsTotal = Object.entries(selectedCustomizations).reduce((total, [optionName, qty]) => {
+                            const option = selectedItem.customization?.find(opt => {
+                              const name = typeof opt === 'string' ? opt : opt.name;
+                              return name === optionName;
+                            });
+                            const price = typeof option === 'string' ? 0 : (option?.price || 0);
+                            return total + (price * qty);
+                          }, 0);
                           return (baseTotal + addonsTotal).toFixed(2);
                         })()}
                       </div>

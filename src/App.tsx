@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -16,11 +16,13 @@ import Kitchen from "./pages/Kitchen";
 import Admin from "./pages/Admin";
 import AdminLogin from "@/components/AdminLogin";
 import StaffLogin from "./pages/StaffLogin";
+import { IPValidation } from "@/components/IPValidation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const location = useLocation();
   const { checkAuth } = useAuthStore();
   const { loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase } = useOrderStore();
 
@@ -32,22 +34,30 @@ const App = () => {
     loadCategoriesFromDatabase();
   }, [checkAuth, loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase]);
 
+  // Hide Navigation on validation page
+  const showNavigation = location.pathname !== '/validate';
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <Navigation />
+        {showNavigation && <Navigation />}
         <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Index />} />
+            <Route path="/validate" element={<IPValidation />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path="/queue" element={<Queue />} />
-            <Route path="/kitchen" element={<Kitchen />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/staff-login" element={<StaffLogin />} />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute element={<Index />} />} />
+            <Route path="/queue" element={<ProtectedRoute element={<Queue />} />} />
+            <Route path="/kitchen" element={<ProtectedRoute element={<Kitchen />} />} />
             <Route path="/admin" element={<ProtectedRoute element={<Admin />} />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>

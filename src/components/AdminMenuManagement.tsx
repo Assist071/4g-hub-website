@@ -34,6 +34,7 @@ export function AdminMenuManagement() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'item' | 'category'; id: string } | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -210,24 +211,35 @@ export function AdminMenuManagement() {
       description: '',
       icon: '🍽️',
     });
+    setCategoryError(null);
     setIsCategoryDialogOpen(true);
   };
 
   const handleEditCategory = (category: MenuCategory) => {
     setSelectedCategory(category);
     setCategoryFormData(category);
+    setCategoryError(null);
     setIsCategoryDialogOpen(true);
   };
 
   const handleSaveCategory = async () => {
+    setCategoryError(null);
+    
     if (!categoryFormData.name) {
-      alert('Please enter a category name');
+      setCategoryError('Please enter a category name');
+      return;
+    }
+
+    // Validate: only letters and spaces allowed
+    if (!/^[a-zA-Z\s]+$/.test(categoryFormData.name)) {
+      setCategoryError('No numbers or special characters allowed.');
       return;
     }
 
     await addMenuCategory(categoryFormData);
     setIsCategoryDialogOpen(false);
     setSelectedCategory(null);
+    setCategoryError(null);
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -271,6 +283,11 @@ export function AdminMenuManagement() {
               <DialogHeader>
                 <DialogTitle className="font-ethnocentric neon-glow text-lg">{selectedCategory ? '✏️ Edit Category' : '➕ Add New Category'}</DialogTitle>
               </DialogHeader>
+              {categoryError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 tech-border text-sm">
+                  <span className="font-semibold">⚠️ {categoryError}</span>
+                </div>
+              )}
               <div className="space-y-4 mt-4">
                 <div>
                   <Label className="font-ethnocentric text-sm font-semibold">Category Name *</Label>
@@ -386,11 +403,7 @@ export function AdminMenuManagement() {
                     <Label className="font-ethnocentric text-sm font-semibold">Item Name *</Label>
                     <Input
                       value={itemFormData.name}
-                      onChange={(e) => {
-                        // Remove numbers from item name
-                        const value = e.target.value.replace(/[0-9]/g, '');
-                        setItemFormData({ ...itemFormData, name: value });
-                      }}
+                      onChange={(e) => setItemFormData({ ...itemFormData, name: e.target.value })}
                       placeholder="e.g., Fried Chicken"
                       className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 mt-2"
                     />
@@ -471,16 +484,16 @@ export function AdminMenuManagement() {
                       <Label className="font-ethnocentric text-sm font-semibold">Price *</Label>
                       <Input
                         type="number"
-                        step="0.01"
+                        step="1"
                         min="0"
                         value={itemFormData.price || ''}
                         onChange={(e) => {
-                          let price = parseFloat(e.target.value) || 0;
+                          let price = parseInt(e.target.value) || 0;
                           // Ensure price is not negative
                           if (price < 0) price = 0;
                           setItemFormData({ ...itemFormData, price });
                         }}
-                        placeholder="0.00"
+                        placeholder="0"
                         className="tech-border border-primary/30 focus:neon-glow-primary transition-all duration-300 mt-2"
                       />
                     </div>

@@ -6,7 +6,7 @@
   import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
   import { Input } from '@/components/ui/input';
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-  import { BarChart3, Users, Database, Download, Upload, Package, ClipboardList, LogOut, ShieldCheck, TrendingUp, Trophy, Wand2, AlertCircle, Clock , Activity, Plus, Trash2, Eye, EyeOff, Loader } from 'lucide-react';
+  import { BarChart3, Users, Database, Download, Upload, Package, ClipboardList, LogOut, ShieldCheck, TrendingUp, Trophy, Wand2, AlertCircle, Clock , Activity, Plus, Trash2, Eye, EyeOff, Loader, Server } from 'lucide-react';
   import { useOrderStore } from '@/store/orderStore';
   import { useAuthStore } from '@/store/authStore';
   import { AdminMenuManagement } from '@/components/AdminMenuManagement';
@@ -15,6 +15,7 @@
   import { useStaffDatabase } from '@/hooks/useStaffDatabase';
   import MenuManagement from '@/components/admin/MenuManagement';
   import OrderManagement from '@/components/admin/OrderManagement';
+  import { PCManagementAdmin } from '@/components/PCManagementAdmin';
 
   
   // ✅ Added: Import charts from Recharts
@@ -307,7 +308,7 @@
                 <LogOut className="h-4 w-4" /> Logout
               </Button>
             </div>
-            <TabsList className="grid w-full grid-cols-4 tech-border">
+            <TabsList className="grid w-full grid-cols-5 tech-border">
               <TabsTrigger value="overview" className="gap-2 font-semibold hover:text-primary transition-colors">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -323,6 +324,10 @@
               <TabsTrigger value="menu-inventory" className="gap-2 font-semibold hover:text-primary transition-colors">
                 <Package className="h-4 w-4" />
                 Stock Levels
+              </TabsTrigger>
+              <TabsTrigger value="pc-management" className="gap-2 font-semibold hover:text-primary transition-colors">
+                <Server className="h-4 w-4" />
+                PC Management
               </TabsTrigger>
             </TabsList>
 
@@ -854,6 +859,11 @@
             <TabsContent value="menu-inventory">
               <MenuInventory />
             </TabsContent>
+
+            {/* PC Management Tab */}
+            <TabsContent value="pc-management">
+              <PCManagementAdmin />
+            </TabsContent>
           </Tabs>
         </div>
 
@@ -894,7 +904,6 @@
                         <SelectItem value="staff">Staff</SelectItem>
                         <SelectItem value="manager">Manager</SelectItem>
                         <SelectItem value="chef">Chef</SelectItem>
-                        <SelectItem value="cashier">Cashier</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

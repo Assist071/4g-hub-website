@@ -20,7 +20,7 @@ export function ProtectedRoute({ element }: ProtectedRouteProps) {
   }
 
   if (!isAdminAuthenticated) {
-    return <Navigate to="/admin-login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return element;
