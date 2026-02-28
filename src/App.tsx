@@ -38,15 +38,15 @@ const App = () => {
         const ipData = await ipResponse.json();
         const clientIP = ipData.ip;
 
-        // Check if this IP has an active session in computer_shop_sessions
-        const { data: sessions } = await supabase
-          .from('computer_shop_sessions')
-          .select('status')
-          .eq('client_ip', clientIP)
-          .eq('status', 'active')
+        // Check if this IP is registered in detected_ips table
+        const { data: ipRecord } = await supabase
+          .from('detected_ips')
+          .select('status, assigned_pc_id')
+          .eq('ip_address', clientIP)
+          .eq('status', 'registered')
           .single();
 
-        setIsIPValidated(!!sessions);
+        setIsIPValidated(!!ipRecord && !!ipRecord.assigned_pc_id);
       } catch (err) {
         console.log('IP validation check:', err);
         // If we can't check, assume not validated (safe default)
