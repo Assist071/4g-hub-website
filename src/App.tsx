@@ -46,11 +46,8 @@ const App = () => {
           .eq('status', 'active')
           .single();
 
-        setIsIIf IP not validated, redirect root to validate */}
-          {!isIPValidated && <Route path="/" element={<Navigate to="/validate" replace />} />}
-          
-          {/* Public Routes */}
-          {isIPValidated && <Route path="/" element={<Landing />} />}
+        setIsIPValidated(!!sessions);
+      } catch (err) {
         console.log('IP validation check:', err);
         // If we can't check, assume not validated (safe default)
         setIsIPValidated(false);
@@ -96,8 +93,13 @@ const App = () => {
         <Sonner />
         {showNavigation && <Navigation />}
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Navigate to="/validate" replace />} />
+          {/* IP Validation Based Routes */}
+          {isIPValidated ? (
+            <Route path="/" element={<Landing />} />
+          ) : (
+            <Route path="/" element={<Navigate to="/validate" replace />} />
+          )}
+          
           <Route path="/validate" element={<IPValidation />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/admin-login" element={<AdminLogin />} />
