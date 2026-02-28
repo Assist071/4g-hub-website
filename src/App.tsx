@@ -35,7 +35,7 @@ const App = () => {
   }, [checkAuth, loadOrdersFromDatabase, loadMenuItemsFromDatabase, loadCategoriesFromDatabase]);
 
   // Hide Navigation on validation page
-  const showNavigation = location.pathname !== '/validate';
+  const showNavigation = location.pathname !== '/';
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -45,8 +45,8 @@ const App = () => {
         {showNavigation && <Navigation />}
         <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/validate" element={<IPValidation />} />
+            <Route path="/" element={<IPValidation />} /> 
+            <Route path="/validate" element={<Landing />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/staff-login" element={<StaffLogin />} />
