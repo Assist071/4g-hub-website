@@ -621,14 +621,15 @@ export function useComputerShopDatabase() {
         console.log('💾 [DB] Starting to assign IP to PC...');
         console.log('💾 [DB] IP:', ipAddress, '| PC ID:', pcId);
 
-        // Update PC with IP
+        // Update PC with IP and set to PENDING (waiting for final confirmation/activation)
         console.log('💾 [DB] Updating PC table...');
+        const now = new Date().toISOString();
         const { error: pcError } = await supabase
           .from('pcs')
           .update({
             ip_address: ipAddress,
-            status: 'offline',
-            last_seen: new Date().toISOString(),
+            status: 'pending',
+            last_seen: now,
           })
           .eq('id', pcId);
 
@@ -636,7 +637,7 @@ export function useComputerShopDatabase() {
           console.error('❌ [DB] PC update error:', pcError);
           throw pcError;
         }
-        console.log('✅ [DB] PC updated successfully');
+        console.log('✅ [DB] PC updated successfully to PENDING (waiting for activation)');
 
         // Update detected_ips record
         console.log('💾 [DB] Updating detected_ips table...');
@@ -756,6 +757,8 @@ export function useComputerShopDatabase() {
           table: 'detected_ips',
         },
         async () => {
+          // Add delay to ensure database writes are complete
+          await new Promise(resolve => setTimeout(resolve, 500));
           const ips = await getDetectedIPs();
           callback(ips);
         }
@@ -766,6 +769,20 @@ export function useComputerShopDatabase() {
       subscription.unsubscribe();
     };
   }, [getDetectedIPs]);
+
+  /**
+   * Refresh both PCs and detected IPs data
+   */
+  const refreshAllData = useCallback(async () => {
+    try {
+      const pcs = await getAllPCs();
+      const ips = await getDetectedIPs();
+      return { pcs, ips };
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      return null;
+    }
+  }, [getAllPCs, getDetectedIPs]);
 
   return {
     loading,
@@ -791,5 +808,6 @@ export function useComputerShopDatabase() {
     updateDetectedIPStatus,
     deleteDetectedIP,
     setPCOnline,
+    refreshAllData,
   };
 }

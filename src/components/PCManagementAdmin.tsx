@@ -22,7 +22,7 @@ export function PCManagementAdmin() {
   const [selectedPCForIP, setSelectedPCForIP] = useState<number | null>(null);
   const [approvedIP, setApprovedIP] = useState<string | null>(null);
 
-  const { getAllPCs, grantAccess, denyAccess, endSession, kickClient, setMaintenance, restoreFromMaintenance, subscribeToPCChanges, getDetectedIPs, assignIPToPC, subscribeToDetectedIPChanges, updateDetectedIPStatus, deleteDetectedIP, setPCOnline } =
+  const { getAllPCs, grantAccess, denyAccess, endSession, kickClient, setMaintenance, restoreFromMaintenance, subscribeToPCChanges, getDetectedIPs, assignIPToPC, subscribeToDetectedIPChanges, updateDetectedIPStatus, deleteDetectedIP, setPCOnline, refreshAllData } =
     useComputerShopDatabase();
 
   // Load PCs
@@ -43,9 +43,15 @@ export function PCManagementAdmin() {
 
     loadDetectedIPs();
 
-    // Subscribe to detected IPs changes
+    // Subscribe to detected IPs changes with immediate resync
     const unsubscribe = subscribeToDetectedIPChanges((ips) => {
+      console.log('📡 [SYNC] Detected IPs updated, refreshing PCs too...');
       setDetectedIPs(ips);
+      // Also refresh PCs when detected IPs change to ensure sync
+      getAllPCs().then(data => {
+        setPCs(data);
+        console.log('📡 [SYNC] PCs refreshed due to detected IP change');
+      });
     });
 
     // Check URL parameter for recently detected IP
@@ -58,7 +64,7 @@ export function PCManagementAdmin() {
     return () => {
       unsubscribe();
     };
-  }, [getDetectedIPs, subscribeToDetectedIPChanges]);
+  }, [getDetectedIPs, subscribeToDetectedIPChanges, getAllPCs]);
 
   // Subscribe to realtime changes
   useEffect(() => {
@@ -127,9 +133,12 @@ export function PCManagementAdmin() {
         
         if (success) {
           console.log('✓ PC status updated to ONLINE');
-          // Reload PCs to reflect changes
+          // Wait for DB propagation then reload PCs to reflect changes
+          await new Promise(resolve => setTimeout(resolve, 500));
           const data = await getAllPCs();
           setPCs(data);
+          const ips = await getDetectedIPs();
+          setDetectedIPs(ips);
         }
       } catch (err) {
         console.error('✗ Error granting access:', err);
@@ -137,7 +146,7 @@ export function PCManagementAdmin() {
         setLoading(false);
       }
     },
-    [grantAccess, setPCOnline, getAllPCs]
+    [grantAccess, setPCOnline, getAllPCs, getDetectedIPs]
   );
 
   const handleDenyAccess = useCallback(
@@ -198,8 +207,11 @@ export function PCManagementAdmin() {
         const success = await setPCOnline(pcId);
         if (success) {
           console.log('✓ PC set to ONLINE successfully');
+          await new Promise(resolve => setTimeout(resolve, 500));
           const data = await getAllPCs();
           setPCs(data);
+          const ips = await getDetectedIPs();
+          setDetectedIPs(ips);
         }
       } catch (err) {
         console.error('✗ Error setting PC to online:', err);
@@ -207,7 +219,7 @@ export function PCManagementAdmin() {
         setLoading(false);
       }
     },
-    [setPCOnline, getAllPCs]
+    [setPCOnline, getAllPCs, getDetectedIPs]
   );
 
   const handleAssignIPToPC = useCallback(
@@ -217,20 +229,26 @@ export function PCManagementAdmin() {
         console.log('🟢 [ADMIN] CONFIRM clicked');
         console.log('🟢 [ADMIN] Assigning IP:', ipAddress, 'to PC ID:', pcId);
 
-        // Assign IP to PC using hook function
+        // Assign IP to PC using hook function (this now sets PC to online automatically)
         const success = await assignIPToPC(ipAddress, pcId);
         console.log('🟢 [ADMIN] assignIPToPC result:', success);
 
         if (success) {
-          console.log('✅ [ADMIN] Assignment successful! Clearing approval states...');
+          console.log('✅ [ADMIN] Assignment successful! PC is now ONLINE');
+          
+          console.log('✅ [ADMIN] Clearing approval states...');
           setSelectedDetectedIP(null);
           setSelectedPCForIP(null);
           setApprovedIP(null);
-          // Reload PCs
-          console.log('🔄 [ADMIN] Reloading PCs list...');
+          
+          // Refresh all data to sync PCs and detected IPs
+          console.log('🔄 [ADMIN] Refreshing all data...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for DB propagation
           const data = await getAllPCs();
+          const ips = await getDetectedIPs();
           setPCs(data);
-          console.log('✅ [ADMIN] PCs reloaded');
+          setDetectedIPs(ips);
+          console.log('✅ [ADMIN] Data refreshed and synced');
         } else {
           console.error('❌ [ADMIN] Assignment failed!');
         }
@@ -240,7 +258,7 @@ export function PCManagementAdmin() {
         setLoading(false);
       }
     },
-    [assignIPToPC, getAllPCs]
+    [assignIPToPC, getAllPCs, getDetectedIPs]
   );
 
   const handleApproveIP = (ipAddress: string) => {
@@ -569,14 +587,29 @@ export function PCManagementAdmin() {
                   <div className="action-buttons">
                     {pc.status === 'pending' && (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => handleGrantAccess(pc)} disabled={loading}>
-                          <CheckCheck className="h-4 w-4 mr-2" />
-                          GRANT
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDenyAccess(pc)} disabled={loading}>
-                          <X className="h-4 w-4 mr-2" />
-                          DENY
-                        </Button>
+                        {pc.ip_address ? (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => handleSetOnline(pc.id)} disabled={loading}>
+                              <Power className="h-4 w-4 mr-2" />
+                              GO ONLINE
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDenyAccess(pc)} disabled={loading}>
+                              <X className="h-4 w-4 mr-2" />
+                              DENY
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => handleGrantAccess(pc)} disabled={loading}>
+                              <CheckCheck className="h-4 w-4 mr-2" />
+                              GRANT
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDenyAccess(pc)} disabled={loading}>
+                              <X className="h-4 w-4 mr-2" />
+                              DENY
+                            </Button>
+                          </>
+                        )}
                       </>
                     )}
 
