@@ -109,7 +109,7 @@ export default function Menu() {
       {/* Header Navigation */}
         <div className="container mx-auto px-4 py-6 md:py-8 flex items-center justify-between">
           <Button asChild variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary neon-glow">
-            <Link to="/">
+            <Link to="/landing">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Link>
