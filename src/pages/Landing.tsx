@@ -1,10 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import FoodShowcase from '@/components/FoodShowcase';
 import { CustomerFeedback } from '@/components/CustomerFeedback';
-import { useComputerShopDatabase } from '@/hooks/useComputerShopDatabase';
 import {
   Utensils,
   Monitor,
@@ -28,41 +27,7 @@ import {
 } from 'lucide-react';
 
 const Landing = () => {
-  const navigate = useNavigate();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const { getDetectedIPs } = useComputerShopDatabase();
-
-  // Check IP status on page load
-  useEffect(() => {
-    const checkIPStatus = async () => {
-      try {
-        // Detect client IP
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        const clientIP = data.ip;
-
-        console.log('🌐 Client IP:', clientIP);
-
-        // Check if IP exists in database
-        const detectedIPs = await getDetectedIPs();
-        const ipRecord = detectedIPs.find((ip) => ip.ip_address === clientIP);
-
-        console.log('🔍 IP found in database:', ipRecord);
-
-        // If IP not registered/approved, redirect to validate
-        if (!ipRecord || ipRecord.status !== 'registered') {
-          console.log('⚠️ IP not approved, redirecting to /validate');
-          navigate('/validate');
-        }
-      } catch (err) {
-        console.error('Error checking IP status:', err);
-        // On error, redirect to validate to be safe
-        navigate('/validate');
-      }
-    };
-
-    checkIPStatus();
-  }, [navigate, getDetectedIPs]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
