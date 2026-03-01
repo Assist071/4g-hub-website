@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useComputerShopDatabase, type PC } from '@/hooks/useComputerShopDatabase';
 import { Button } from '@/components/ui/button';
-import { CheckCheck, X, LogOut, Zap, AlertTriangle, Power, Network } from 'lucide-react';
+import { CheckCheck, X, LogOut, Zap, AlertTriangle, Power, Network, Key, Clock, CheckCircle2, Trash2 } from 'lucide-react';
 import './PCManagementAdmin.css';
 
-type StatusFilter = 'all' | 'online' | 'pending' | 'offline' | 'maintenance';
+type StatusFilter = 'all' | 'online' | 'pending' | 'offline';
 
 interface DetectedIP {
   id: number;
@@ -13,17 +13,51 @@ interface DetectedIP {
   detected_at: string;
 }
 
+interface DeviceToken {
+  id: number;
+  token: string;
+  device_name: string;
+  ip_address: string;
+  status: 'pending' | 'approved' | 'rejected';
+  approved_at: string | null;
+  created_at: string;
+  expires_at: string;
+  pc_id: number | null;
+}
+
 export function PCManagementAdmin() {
   const [pcs, setPCs] = useState<PC[]>([]);
   const [detectedIPs, setDetectedIPs] = useState<DetectedIP[]>([]);
+  const [deviceTokens, setDeviceTokens] = useState<DeviceToken[]>([]);
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [loading, setLoading] = useState(false);
   const [selectedDetectedIP, setSelectedDetectedIP] = useState<string | null>(null);
   const [selectedPCForIP, setSelectedPCForIP] = useState<number | null>(null);
   const [approvedIP, setApprovedIP] = useState<string | null>(null);
+  const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
+  const [tokenTab, setTokenTab] = useState<'pending' | 'rejected'>('pending');
 
-  const { getAllPCs, grantAccess, denyAccess, endSession, kickClient, setMaintenance, restoreFromMaintenance, subscribeToPCChanges, getDetectedIPs, assignIPToPC, subscribeToDetectedIPChanges, updateDetectedIPStatus, deleteDetectedIP, setPCOnline, refreshAllData } =
-    useComputerShopDatabase();
+  const { 
+    getAllPCs, 
+    grantAccess, 
+    denyAccess, 
+    endSession, 
+    kickClient, 
+    subscribeToPCChanges, 
+    getDetectedIPs, 
+    assignIPToPC, 
+    subscribeToDetectedIPChanges, 
+    updateDetectedIPStatus, 
+    deleteDetectedIP, 
+    setPCOnline, 
+    refreshAllData,
+    getDeviceTokens,
+    approveDeviceToken,
+    rejectDeviceToken,
+    deleteDeviceToken,
+    deleteAllDeviceTokensByStatus,
+    subscribeToDeviceTokenChanges,
+  } = useComputerShopDatabase();
 
   // Load PCs
   useEffect(() => {
@@ -65,6 +99,26 @@ export function PCManagementAdmin() {
       unsubscribe();
     };
   }, [getDetectedIPs, subscribeToDetectedIPChanges, getAllPCs]);
+
+  // Load device tokens from database
+  useEffect(() => {
+    const loadDeviceTokens = async () => {
+      const tokens = await getDeviceTokens();
+      setDeviceTokens(tokens);
+    };
+
+    loadDeviceTokens();
+
+    // Subscribe to device tokens changes
+    const unsubscribe = subscribeToDeviceTokenChanges((tokens) => {
+      console.log('📡 [SYNC] Device tokens updated');
+      setDeviceTokens(tokens);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [getDeviceTokens, subscribeToDeviceTokenChanges]);
 
   // Subscribe to realtime changes
   useEffect(() => {
@@ -109,7 +163,6 @@ export function PCManagementAdmin() {
     online: pcs.filter((p) => p.status === 'online').length,
     pending: pcs.filter((p) => p.status === 'pending').length,
     offline: pcs.filter((p) => p.status === 'offline').length,
-    maintenance: pcs.filter((p) => p.status === 'maintenance').length,
   };
 
   // Action handlers
@@ -181,23 +234,7 @@ export function PCManagementAdmin() {
     [kickClient]
   );
 
-  const handleSetMaintenance = useCallback(
-    async (pcId: number) => {
-      setLoading(true);
-      await setMaintenance(pcId);
-      setLoading(false);
-    },
-    [setMaintenance]
-  );
 
-  const handleRestoreMaintenance = useCallback(
-    async (pcId: number) => {
-      setLoading(true);
-      await restoreFromMaintenance(pcId);
-      setLoading(false);
-    },
-    [restoreFromMaintenance]
-  );
 
   const handleSetOnline = useCallback(
     async (pcId: number) => {
@@ -316,6 +353,124 @@ export function PCManagementAdmin() {
     }
   };
 
+  // Device token handlers
+  const handleApproveDeviceToken = useCallback(
+    async (tokenId: number, pcId?: number) => {
+      try {
+        setLoading(true);
+        console.log('🎫 [TOKEN] Approving token ID:', tokenId, 'for PC:', pcId);
+        
+        const success = await approveDeviceToken(tokenId, pcId);
+        
+        if (success) {
+          console.log('✅ [TOKEN] Token approved successfully');
+          setSelectedTokenId(null);
+          
+          // Refresh tokens
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const tokens = await getDeviceTokens();
+          setDeviceTokens(tokens);
+        }
+      } catch (err) {
+        console.error('❌ [TOKEN] Error approving token:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [approveDeviceToken, getDeviceTokens]
+  );
+
+  const handleRejectDeviceToken = useCallback(
+    async (tokenId: number) => {
+      if (!window.confirm('Are you sure you want to reject this device token?')) {
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        console.log('🎫 [TOKEN] Rejecting token ID:', tokenId);
+        
+        const success = await rejectDeviceToken(tokenId);
+        
+        if (success) {
+          console.log('✅ [TOKEN] Token rejected successfully');
+          setSelectedTokenId(null);
+          
+          // Refresh tokens
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const tokens = await getDeviceTokens();
+          setDeviceTokens(tokens);
+        }
+      } catch (err) {
+        console.error('❌ [TOKEN] Error rejecting token:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [rejectDeviceToken, getDeviceTokens]
+  );
+
+  const handleDeleteDeviceToken = useCallback(
+    async (tokenId: number) => {
+      if (!window.confirm('Are you sure you want to delete this device token?')) {
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        console.log('🗑️ [TOKEN] Deleting token ID:', tokenId);
+        
+        const success = await deleteDeviceToken(tokenId);
+        
+        if (success) {
+          console.log('✅ [TOKEN] Token deleted successfully');
+          setSelectedTokenId(null);
+          
+          // Refresh tokens
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const tokens = await getDeviceTokens();
+          setDeviceTokens(tokens);
+        }
+      } catch (err) {
+        console.error('❌ [TOKEN] Error deleting token:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [deleteDeviceToken, getDeviceTokens]
+  );
+
+  const handleDeleteAllDeviceTokens = useCallback(
+    async (status: 'pending' | 'rejected') => {
+      const count = deviceTokens.filter(t => t.status === status).length;
+      if (!window.confirm(`Are you sure you want to delete all ${count} ${status} token(s)? This cannot be undone.`)) {
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        console.log(`🗑️ [TOKEN] Deleting all ${status} tokens`);
+        
+        const success = await deleteAllDeviceTokensByStatus(status);
+        
+        if (success) {
+          console.log(`✅ [TOKEN] All ${status} tokens deleted successfully`);
+          setSelectedTokenId(null);
+          
+          // Refresh tokens
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const tokens = await getDeviceTokens();
+          setDeviceTokens(tokens);
+        }
+      } catch (err) {
+        console.error(`❌ [TOKEN] Error deleting all ${status} tokens:`, err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [deleteAllDeviceTokensByStatus, getDeviceTokens, deviceTokens]
+  );
+
   // Get icon for status
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -325,8 +480,6 @@ export function PCManagementAdmin() {
         return <div className="status-dot pending" />;
       case 'offline':
         return <div className="status-dot offline" />;
-      case 'maintenance':
-        return <div className="status-dot maintenance" />;
       default:
         return null;
     }
@@ -530,9 +683,210 @@ export function PCManagementAdmin() {
         </div>
       )}
 
+      {/* Device Tokens Alert Section */}
+      {(deviceTokens.some(t => t.status === 'pending') || deviceTokens.some(t => t.status === 'rejected')) && (
+        <div className="device-tokens-alert" style={{ marginTop: '20px' }}>
+          <div className="alert-header">
+            <Key className="h-5 w-5 text-blue-400" />
+            <span className="alert-title">Device Tokens</span>
+          </div>
+
+          {/* Token Tabs */}
+          <div className="token-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '15px', borderBottom: '1px solid #ddd', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setTokenTab('pending')}
+                className={`token-tab ${tokenTab === 'pending' ? 'active' : ''}`}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontWeight: tokenTab === 'pending' ? 'bold' : 'normal',
+                  color: tokenTab === 'pending' ? '#3b82f6' : '#666',
+                  borderBottom: tokenTab === 'pending' ? '2px solid #3b82f6' : 'none',
+                }}
+              >
+                PENDING ({deviceTokens.filter(t => t.status === 'pending').length})
+              </button>
+              {deviceTokens.some(t => t.status === 'rejected') && (
+                <button
+                  onClick={() => setTokenTab('rejected')}
+                  className={`token-tab ${tokenTab === 'rejected' ? 'active' : ''}`}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    fontWeight: tokenTab === 'rejected' ? 'bold' : 'normal',
+                    color: tokenTab === 'rejected' ? '#ef4444' : '#666',
+                    borderBottom: tokenTab === 'rejected' ? '2px solid #ef4444' : 'none',
+                  }}
+                >
+                  REJECTED ({deviceTokens.filter(t => t.status === 'rejected').length})
+                </button>
+              )}
+            </div>
+            
+            {tokenTab === 'pending' && deviceTokens.filter(t => t.status === 'pending').length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={loading}
+                onClick={() => handleDeleteAllDeviceTokens('pending')}
+                style={{ color: '#ef4444', borderColor: '#ef4444' }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete All
+              </Button>
+            )}
+            
+            {tokenTab === 'rejected' && deviceTokens.filter(t => t.status === 'rejected').length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={loading}
+                onClick={() => handleDeleteAllDeviceTokens('rejected')}
+                style={{ color: '#ef4444', borderColor: '#ef4444' }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete All
+              </Button>
+            )}
+          </div>
+
+          {/* Pending Tokens Tab */}
+          {tokenTab === 'pending' && (
+            <div className="pending-tokens-list">
+              {deviceTokens
+                .filter(t => t.status === 'pending')
+              .map((token) => (
+                <div 
+                  key={token.id} 
+                  className="pending-token-item"
+                  onClick={() => setSelectedTokenId(token.id)}
+                >
+                  <div className="token-details">
+                    <div className="token-header">
+                      <span className="device-name">{token.device_name}</span>
+                      <span className="token-status-badge pending">PENDING</span>
+                    </div>
+                    <div className="token-info">
+                      <span className="label">IP:</span>
+                      <code className="ip">{token.ip_address}</code>
+                      <span className="label ml-4">Created:</span>
+                      <span className="time">{new Date(token.created_at).toLocaleTimeString()}</span>
+                    </div>
+                    <div className="token-preview">
+                      <span className="label">Token: </span>
+                      <code>{token.token.substring(0, 24)}...</code>
+                    </div>
+                  </div>
+
+                  {selectedTokenId === token.id && (
+                    <div className="token-actions">
+                      <div className="button-group">
+                        <Button
+                          size="sm"
+                          disabled={loading}
+                          onClick={() => handleApproveDeviceToken(token.id)}
+                          className="approve-btn"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Approve Token
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={loading}
+                          onClick={() => handleRejectDeviceToken(token.id)}
+                          className="reject-btn"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Reject
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={loading}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteDeviceToken(token.id);
+                          }}
+                          style={{ color: '#ef4444', borderColor: '#ef4444' }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Rejected Tokens Tab */}
+          {tokenTab === 'rejected' && (
+            <div className="rejected-tokens-list">
+              {deviceTokens
+                .filter(t => t.status === 'rejected')
+                .map((token) => (
+                  <div key={token.id} className="rejected-token-item" style={{
+                    padding: '12px',
+                    marginBottom: '10px',
+                    background: '#fee2e2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                    <div className="token-details">
+                      <div className="token-header">
+                        <span className="device-name" style={{ fontWeight: 'bold' }}>{token.device_name}</span>
+                        <span className="token-status-badge" style={{
+                          padding: '4px 8px',
+                          background: '#ef4444',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                        }}>✗ REJECTED</span>
+                      </div>
+                      <div className="token-info" style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+                        <span className="label">IP:</span>
+                        <code style={{ marginRight: '12px' }}>{token.ip_address}</code>
+                        <span className="label">Status:</span>
+                        <span style={{ marginLeft: '4px' }}>Revoked/Rejected</span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={loading}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDeviceToken(token.id);
+                      }}
+                      style={{ color: '#ef4444', borderColor: '#ef4444', minWidth: '80px', flexShrink: 0, marginLeft: '12px' }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+              {deviceTokens.filter(t => t.status === 'rejected').length === 0 && (
+                <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>No rejected tokens</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Filter Tabs */}
-      <div className="filter-tabs">
-        {(['all', 'online', 'pending', 'offline', 'maintenance'] as StatusFilter[]).map((tab) => (
+      <div className="filter-tabs" style={{ marginTop: '30px' }}>
+        {(['all', 'online', 'pending', 'offline'] as StatusFilter[]).map((tab) => (
           <button
             key={tab}
             className={`tab ${filter === tab ? 'active' : ''}`}
@@ -629,27 +983,14 @@ export function PCManagementAdmin() {
                     {pc.status === 'offline' && (
                       <>
                         {pc.ip_address ? (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => handleSetOnline(pc.id)} disabled={loading}>
-                              <Power className="h-4 w-4 mr-2" />
-                              GO ONLINE
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => handleSetMaintenance(pc.id)} disabled={loading}>
-                              <AlertTriangle className="h-4 w-4 mr-2" />
-                              MAINTENANCE
-                            </Button>
-                          </>
+                          <Button size="sm" variant="outline" onClick={() => handleSetOnline(pc.id)} disabled={loading}>
+                            <Power className="h-4 w-4 mr-2" />
+                            GO ONLINE
+                          </Button>
                         ) : (
                           <span className="no-ip-text">No IP</span>
                         )}
                       </>
-                    )}
-
-                    {pc.status === 'maintenance' && (
-                      <Button size="sm" variant="outline" onClick={() => handleRestoreMaintenance(pc.id)} disabled={loading}>
-                        <Power className="h-4 w-4 mr-2" />
-                        RESTORE
-                      </Button>
                     )}
                   </div>
                 </td>

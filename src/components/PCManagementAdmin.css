@@ -54,6 +54,15 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .detected-ips-alert .alert-header {
   display: flex;
   align-items: center;
@@ -559,6 +568,601 @@
 .detected-ips-alert .delete-ip-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Unified Pending Approvals Section */
+.pending-approvals-panel {
+  background: transparent;
+  border: 2px solid hsl(25 95% 53% / 0.5);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  animation: slideDown 0.3s ease-out;
+  pointer-events: auto;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(255, 140, 51, 0.08);
+}
+
+.pending-approvals-panel .alert-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-weight: 700;
+  color: hsl(25, 95%, 53%);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+}
+
+.pending-approvals-panel .alert-header svg {
+  filter: drop-shadow(0 0 4px hsl(25 95% 53% / 0.3));
+}
+
+.pending-approvals-panel .approval-badge {
+  display: inline-block;
+  background: hsl(0 84% 60%);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* Approval Tabs */
+.approval-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid hsl(25 95% 53% / 0.2);
+  padding-bottom: 0;
+}
+
+.approval-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.approval-tab svg {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.approval-tab:hover {
+  color: hsl(25, 95%, 53%);
+}
+
+.approval-tab:hover svg {
+  opacity: 1;
+}
+
+.approval-tab.active {
+  color: hsl(25, 95%, 53%);
+  border-bottom-color: hsl(25, 95%, 53%);
+  background: rgba(255, 140, 51, 0.05);
+}
+
+.approval-tab.active svg {
+  filter: drop-shadow(0 0 4px hsl(25 95% 53% / 0.3));
+  opacity: 1;
+}
+
+.approval-tab .tab-badge {
+  display: inline-block;
+  background: hsl(0 84% 60%);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Device Tokens Alert Section */
+.device-tokens-alert {
+  background: transparent;
+  border: 1px solid hsl(217 91% 60% / 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  animation: slideDown 0.3s ease-out;
+  pointer-events: auto;
+  z-index: 5;
+  box-shadow: none;
+}
+
+.device-tokens-alert .alert-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: hsl(217 91% 60%);
+  font-size: 13px;
+}
+
+.device-tokens-alert .token-badge {
+  display: none;
+}
+
+.device-tokens-alert .alert-header svg {
+  filter: none;
+  opacity: 0.8;
+}
+
+.pending-tokens-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pending-token-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid hsl(217 91% 60% / 0.2);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.pending-token-item:hover {
+  background: hsl(217 91% 60% / 0.05);
+  border-color: hsl(217 91% 60% / 0.4);
+  transform: none;
+  box-shadow: none;
+}
+
+.pending-token-item .token-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.pending-token-item .device-name {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  font-size: 13px;
+}
+
+.pending-token-item .token-status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pending-token-item .token-status-badge.pending {
+  background: hsl(0 84% 60% / 0.15);
+  color: hsl(0, 84%, 60%);
+  border: none;
+}
+
+.pending-token-item .token-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+
+.pending-token-item .token-info .label {
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.pending-token-item .token-info .ip {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  color: hsl(217 91% 60%);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.pending-token-item .token-info .time {
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+}
+
+.pending-token-item .token-preview {
+  display: none;
+}
+
+.pending-token-item .token-preview .label {
+  display: none;
+}
+
+.pending-token-item .token-preview code {
+  display: none;
+}
+
+.pending-token-item .token-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid hsl(217 91% 60% / 0.15);
+  animation: slideDown 0.2s ease-out;
+}
+
+.pending-token-item .token-actions .action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pending-token-item .token-actions p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.pending-token-item .pc-select {
+  padding: 8px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 12px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+}
+
+.pending-token-item .pc-select:focus {
+  outline: none;
+  border-color: hsl(217 91% 60%);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.pending-token-item .button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.pending-token-item .button-group button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pending-token-item .approve-btn {
+  background: hsl(217 91% 60%);
+  color: white;
+  border: none;
+}
+
+.pending-token-item .approve-btn:hover {
+  background: hsl(217 91% 50%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.pending-token-item .reject-btn {
+  background: transparent;
+  color: hsl(0, 84%, 60%);
+  border: 1px solid hsl(0, 84%, 60%);
+}
+
+.pending-token-item .reject-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: hsl(0, 84%, 50%);
+}
+
+/* Access Management Section */
+.access-management-section {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: hsl(var(--muted) / 0.3);
+  border: 2px solid hsl(25 95% 53% / 0.3);
+  border-radius: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.access-header {
+  margin-bottom: 20px;
+}
+
+.access-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: hsl(25 95% 53%);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.access-header p {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* Access Tabs */
+.access-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.access-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid hsl(var(--border));
+  background: hsl(var(--background));
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.access-tab:hover {
+  background: hsl(var(--muted) / 0.6);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.access-tab.active {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.access-tab .tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: hsl(0, 84%, 60%);
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  margin-left: 4px;
+}
+
+/* Access Tab Content */
+.access-tab-content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Access List */
+.access-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.access-item {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.access-item:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.02);
+}
+
+.access-item.selected {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.1);
+}
+
+.access-item.pending {
+  border-color: hsl(38 92% 50% / 0.5);
+}
+
+.access-item.approved {
+  border-color: hsl(142 72% 29% / 0.5);
+}
+
+.access-item.rejected {
+  border-color: hsl(0 84% 60% / 0.5);
+  opacity: 0.6;
+}
+
+.access-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.access-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ip-badge,
+.device-name {
+  display: inline-block;
+  padding: 4px 10px;
+  background: hsl(var(--muted));
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: hsl(25 95% 53%);
+}
+
+.device-name {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+  background: hsl(38 92% 50% / 0.2);
+  color: hsl(38 92% 50%);
+}
+
+.status-badge.approved {
+  background: hsl(142 72% 29% / 0.2);
+  color: hsl(142 72% 29%);
+}
+
+.status-badge.rejected {
+  background: hsl(0 84% 60% / 0.2);
+  color: hsl(0 84% 60%);
+}
+
+.detected-time {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+
+/* Access Item Actions */
+.access-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid hsl(var(--border));
+  animation: slideDown 0.3s ease-out;
+}
+
+.pc-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pc-selector label {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pc-select {
+  padding: 8px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.pc-select:hover {
+  border-color: hsl(var(--primary));
+}
+
+.pc-select:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+.token-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 6px;
+}
+
+.token-code {
+  flex: 1;
+  padding: 8px 12px;
+  background: hsl(var(--background));
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: hsl(25 95% 53%);
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.approve-btn {
+  background: hsl(142 72% 29%);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.approve-btn:hover {
+  background: hsl(142 72% 35%);
 }
 
 /* Filter Tabs */

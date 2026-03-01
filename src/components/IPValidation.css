@@ -328,6 +328,105 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* Token Pending State */
+.ip-validation-container.token-pending {
+  background: hsl(var(--background));
+}
+
+.token-pending-content {
+  text-align: center;
+  color: hsl(var(--foreground));
+  max-width: 450px;
+}
+
+.token-pending-content h1 {
+  font-size: 32px;
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: hsl(var(--primary));
+}
+
+.token-pending-content > p:first-of-type {
+  font-size: 18px;
+  opacity: 0.9;
+  margin: 0 0 40px;
+  color: hsl(var(--muted-foreground));
+}
+
+.token-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.token-display {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.token-display .value.token {
+  flex: 1;
+  text-align: left;
+  font-size: 13px;
+  letter-spacing: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.token-display button {
+  padding: 6px 10px;
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: hsl(var(--primary));
+}
+
+.token-display button:hover {
+  background: hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+.token-instructions {
+  text-align: left;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.token-instructions h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.token-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+  list-style-position: inside;
+}
+
+.token-instructions li {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.9;
+}
+
+.token-instructions li:last-child {
+  margin-bottom: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .ip-validation-container {

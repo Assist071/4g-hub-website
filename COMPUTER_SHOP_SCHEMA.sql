@@ -7,7 +7,7 @@
     id SERIAL PRIMARY KEY,
     pc_number VARCHAR(50) UNIQUE NOT NULL,
     ip_address VARCHAR(45) NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'offline' CHECK (status IN ('offline', 'online', 'pending', 'maintenance')),
+    status VARCHAR(20) NOT NULL DEFAULT 'offline' CHECK (status IN ('offline', 'online', 'pending')),
     session_started_at TIMESTAMP NULL,
     last_seen TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -19,7 +19,7 @@
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pc_id INTEGER NOT NULL REFERENCES pcs(id) ON DELETE CASCADE,
     ip_address VARCHAR(45) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'ended', 'rejected')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('pending', 'active', 'ended', 'rejected')),
     started_at TIMESTAMP NULL,
     ended_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -81,3 +81,34 @@
         ('PC-19', NULL, 'offline'),
         ('PC-20', NULL, 'offline')
     ON CONFLICT (pc_number) DO NOTHING;
+
+    -- Drop old trigger if exists
+    DROP TRIGGER IF EXISTS device_token_approval_trigger ON device_tokens;
+    DROP FUNCTION IF EXISTS on_device_token_approval();
+
+    -- Create function
+    CREATE FUNCTION on_device_token_approval()
+    RETURNS TRIGGER AS $$
+    BEGIN
+    -- When token status changes to 'approved', update PC status to 'online' automatically
+    IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
+        -- Set pc_status in device_tokens table
+        NEW.pc_status = 'online';
+        
+        -- Update actual PC status if pc_id exists
+        IF NEW.pc_id IS NOT NULL THEN
+            UPDATE pcs
+            SET status = 'online', updated_at = NOW()
+            WHERE id = NEW.pc_id;
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- Create trigger
+    CREATE TRIGGER device_token_approval_trigger
+    BEFORE UPDATE ON device_tokens
+    FOR EACH ROW
+    EXECUTE FUNCTION on_device_token_approval();
